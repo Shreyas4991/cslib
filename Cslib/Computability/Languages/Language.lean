@@ -54,10 +54,9 @@ theorem reverse_sub (l m : Language α) : (l - m).reverse = l.reverse - m.revers
 theorem sub_one_mul : (l - 1) * l = l * l - 1 := by
   ext x; constructor
   · rintro ⟨u, h_u, v, h_v, rfl⟩
-    rw [mem_sub, mem_one] at h_u ⊢
     constructor
     · refine ⟨u, ?_, v, ?_⟩ <;> grind
-    · grind [append_eq_nil_iff]
+    · grind [append_eq_nil_iff, mem_one]
   · rintro ⟨⟨u, h_u, v, h_v, rfl⟩, h_x⟩
     rcases eq_or_ne u [] with (rfl | h_u')
     · refine ⟨v, ?_, [], ?_⟩ <;> grind [mem_sub, mem_one]
@@ -85,5 +84,15 @@ theorem kstar_sub_one : l∗ - 1 = (l - 1) * l∗ := by
     · apply (show l * l∗ ≤ l∗ by exact mul_kstar_le_kstar)
       exact ⟨y, h_y, z, h_z, rfl⟩
     · grind [one_def, append_eq_nil_iff]
+
+@[scoped grind =]
+theorem sub_one_kstar : (l - 1)∗ = l∗ := by
+  ext x
+  grind [mem_kstar, mem_kstar_iff_exists_nonempty]
+
+@[scoped grind .]
+theorem kstar_iff_mul_add : m = l∗ ↔ m = (l - 1) * m + 1 := by
+  rw [self_eq_mul_add_iff, mul_one, sub_one_kstar]
+  grind
 
 end Language

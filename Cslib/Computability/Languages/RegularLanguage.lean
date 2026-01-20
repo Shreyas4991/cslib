@@ -6,9 +6,11 @@ Authors: Ching-Tsun Chou
 
 module
 
+public import Cslib.Computability.Automata.DA.Congr
 public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.DA.ToNA
 public import Cslib.Computability.Automata.NA.Concat
+public import Cslib.Computability.Automata.NA.Loop
 public import Cslib.Computability.Automata.NA.ToDA
 public import Mathlib.Computability.DFA
 public import Mathlib.Data.Finite.Sum
@@ -23,7 +25,7 @@ public import Mathlib.Tactic.Common
 
 namespace Cslib.Language
 
-open Set List Prod Automata Acceptor
+open Set List Prod Automata Acceptor RightCongruence
 open scoped Computability FLTS DA NA DA.FinAcc NA.FinAcc
 
 variable {Symbol : Type*}
@@ -146,5 +148,27 @@ theorem IsRegular.mul [Inhabited Symbol] {l1 l2 : Language Symbol}
   use (State1 ⊕ Unit) ⊕ (State2 ⊕ Unit), inferInstance,
     ⟨finConcat nfa1 nfa2, inr '' (inl '' nfa2.accept)⟩
   exact finConcat_language_eq
+
+-- TODO: fix proof to work with backward.isDefEq.respectTransparency
+set_option backward.isDefEq.respectTransparency false in
+open NA.FinAcc Sum in
+/-- The Kleene star of a regular language is regular. -/
+@[simp]
+theorem IsRegular.kstar [Inhabited Symbol] {l : Language Symbol}
+    (h : l.IsRegular) : (l∗).IsRegular := by
+  by_cases h_l : l = 0
+  · simp [h_l]
+  · rw [IsRegular.iff_nfa] at h ⊢
+    obtain ⟨State, h_fin, nfa, rfl⟩ := h
+    use Unit ⊕ (State ⊕ Unit), inferInstance, ⟨finLoop nfa, {inl ()}⟩, loop_language_eq h_l
+
+/-- If a right congruence is of finite index, then each of its equivalence classes is regular. -/
+@[simp]
+theorem IsRegular.congr_fin_index {Symbol : Type}
+    [c : RightCongruence Symbol] [Finite (Quotient c.eq)]
+    (a : Quotient c.eq) : (eqvCls a).IsRegular := by
+  rw [IsRegular.iff_dfa]
+  use Quotient c.eq, inferInstance, ⟨c.toDA, {a}⟩
+  exact DA.FinAcc.congr_language_eq
 
 end Cslib.Language
