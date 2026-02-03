@@ -76,10 +76,10 @@ def depthOf (q : Formula α β) :=
 
 def sizeOf (q : Formula α β) :=
   match q with
-  | .const c => 0
-  | .add c₁ c₂ => 1 + max (depthOf c₁) (depthOf c₂)
-  | .mul c₁ c₂ => 1 + max (depthOf c₁) (depthOf c₂)
-  | .neg c => 1 + depthOf c
+  | .const c => 1
+  | .add c₁ c₂ => 1 + (sizeOf c₁) + (sizeOf c₂)
+  | .mul c₁ c₂ => 1 + (sizeOf c₁) + (sizeOf c₂)
+  | .neg c => 1 + sizeOf c
 
 def circModel (α : Type u) [Add α] [Mul α] [Neg α] : Model (Formula α) CircuitCosts where
   evalQuery q := circEval α q
@@ -195,8 +195,8 @@ def ex6 (a b : Circuit ℚ (Formula ℚ ℚ)) : Prog (Circuit ℚ) (Formula ℚ 
   let z : Formula ℚ ℚ ← add x y
   mul z z
 
-def ex6_circuit := (ex6 (.const 0) (.const 1)).eval (circQueryModel ℚ)
-#eval sizeOf ex6_circuit
+def ex6_formula : Formula ℚ ℚ := (ex6 (.const 0) (.const 1)).eval (circQueryModel ℚ)
+#eval sizeOf ex6_formula
 #eval (ex6 (.const 0) (.const 1)).time (circQueryModel ℚ)
 
 end Circuit
