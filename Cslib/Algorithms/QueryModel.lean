@@ -46,9 +46,7 @@ and complexity of algorithms in lean. To specify an algorithm, one must:
 query model, free monad, time complexity, Prog
 -/
 
-namespace Cslib
-
-namespace Algorithms
+namespace Cslib.Algorithms
 
 class PureCosts (α : Type u) where
   pureCost : α
@@ -65,18 +63,14 @@ abbrev Prog Q α := FreeM Q α
 
 instance {Q α} : Coe (Q α) (FreeM Q α) where
   coe := FreeM.lift
-namespace Prog
 
-
-def eval [Add Cost] [Zero Cost] [PureCosts Cost]
+@[simp, grind]
+def Prog.eval [Add Cost] [Zero Cost] [PureCosts Cost]
   (P : Prog Q α) (M : Model Q Cost) : α :=
-  match P with
-  | .pure x => x
-  | .liftBind op cont  =>
-      let qval := M.evalQuery op
-      eval (cont qval) M
+  Id.run <| P.liftM fun x => pure (M.evalQuery x)
 
-def time [Add Cost] [Zero Cost] [PureCosts Cost]
+@[simp, grind]
+def Prog.time [Add Cost] [Zero Cost] [PureCosts Cost]
   (P : Prog Q α) (M : Model Q Cost) : Cost :=
   match P with
   | .pure _ => PureCosts.pureCost
@@ -85,52 +79,15 @@ def time [Add Cost] [Zero Cost] [PureCosts Cost]
       let qval := M.evalQuery op
       t₁ + (time (cont qval) M)
 
-section TimeM
-
--- The below is a proof of concept and pointless
-def interpretQueryIntoTime (M : Model Q ℕ) (q : Q α) : TimeM α where
-  ret := M.evalQuery q
-  time := M.cost q
-
-def interpretProgIntoTime (P : Prog Q α) (M : Model Q ℕ) : TimeM α where
-  ret := eval P M
-  time := time P M
-
-def liftProgIntoTime (M : Model Q ℕ) (P : Prog Q α) : TimeM α :=
-  P.liftM (interpretQueryIntoTime M)
-
-
--- The below lemma only holds if the cost of pure operations is zero. This
--- is however a footgun
-
--- -- This lemma is a sanity check. This is the only place `TimeM` is used.
--- lemma timing_is_identical : ∀ (P : Prog Q α) (M : Model Q ℕ),
---   time P M = (liftProgIntoTime M P).time := by
---   intro P pm
---   induction P with
---   | pure a =>
---       simp [time,liftProgIntoTime]
---   | liftBind op cont ih =>
---       expose_names
---       simp_all [time, liftProgIntoTime, interpretQueryIntoTime]
-
-end TimeM
-
-
-
 section Reduction
 
 structure Reduction (Q₁ Q₂ : Type u → Type u) where
   reduce : Q₁ α → Prog Q₂ α
 
-def reduceProg (P : Prog Q₁ α) (red : Reduction Q₁ Q₂) : Prog Q₂ α :=
+def Prog.reduceProg (P : Prog Q₁ α) (red : Reduction Q₁ Q₂) : Prog Q₂ α :=
     P.liftM red.reduce
 
 
 end Reduction
 
-end Prog
-
-end Algorithms
-
-end Cslib
+end Cslib.Algorithms

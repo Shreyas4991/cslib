@@ -22,6 +22,14 @@ inductive Circuit (α : Type u) : Type u → Type u where
   | neg (id : ℕ) (c : Circuit α α) : Circuit α α
 deriving Repr
 
+def getID (c : Circuit α β) : ℕ :=
+  match c with
+  | .const id _ => id
+  | .add id _ _ => id
+  | .mul id _ _ => id
+  | .neg id _ => id
+
+
 structure CircuitCosts where
   depth : ℕ
   size : ℕ
@@ -82,6 +90,7 @@ def exCircuit1 : Prog (Circuit Bool) Bool := do
   let w := mul 3 x y
   add 4 z w
 
+
 #eval exCircuit1.eval (circModel Bool)
 #eval exCircuit1.time (circModel Bool)
 
@@ -90,7 +99,7 @@ def exCircuit2 : Prog (Circuit ℚ) ℚ := do
   let x := const 0 (1 : ℚ)
   let y := const 1 (2 : ℚ)
   let z := add 2 x y
-  mul 4 z z
+  mul 3 z z
 
 
 #eval exCircuit2.eval (circModel ℚ)
@@ -138,17 +147,21 @@ section CircuitQuery
 
 inductive CircuitQuery (α : Type u) : Type u → Type u where
   | const (x : α) : CircuitQuery α (Circuit α α)
-  | add (c₁ c₂ : CircuitQuery α (Circuit α α)) : CircuitQuery α (Circuit α α)
-  | mul (c₁ c₂ : CircuitQuery α (Circuit α α)) : CircuitQuery α (Circuit α α)
-  | neg (c : CircuitQuery α (Circuit α α)) : CircuitQuery α (Circuit α α)
+  | add (c₁ c₂ : Circuit α α) : CircuitQuery α (Circuit α α)
+  | mul (c₁ c₂ : Circuit α α) : CircuitQuery α (Circuit α α)
+  | neg (c : Circuit α α) : CircuitQuery α (Circuit α α)
+
+structure CircuitContext (α β : Type u) where
+  q : CircuitQuery α β
+  counter : ℕ
 
 def circQueryEvalAux (α : Type u) (id : ℕ)
   (c : CircuitQuery α ι) : ι :=
   match c with
   | .const x => Circuit.const id x
-  | .add c₁ c₂ => Circuit.add id (circQueryEvalAux α (id + 1) c₁) (circQueryEvalAux α (id + 2) c₂)
-  | .mul c₁ c₂ => Circuit.add id (circQueryEvalAux α (id + 1) c₁) (circQueryEvalAux α (id + 2) c₂)
-  | .neg c => Circuit.neg id (circQueryEvalAux α (id + 1) c)
+  | .add c₁ c₂ => Circuit.add id c₁ c₂
+  | .mul c₁ c₂ => Circuit.mul id c₁ c₂
+  | .neg c => Circuit.neg id c
 
 def sizeCircQuery (c : CircuitQuery α (Circuit α β)) : CircuitCosts :=
   let c' := circQueryEvalAux α 0 c
@@ -169,9 +182,9 @@ def reduceToCirc {α} [iadd : Add α] [imul : Mul α] [ineg : Neg α]
 
 open CircuitQuery in
 def ex5 : Prog (CircuitQuery ℚ) (Circuit ℚ ℚ) := do
-  let x := const (1 : ℚ)
-  let y := const (2 : ℚ)
-  let z := add x y
+  let x ← const (1 : ℚ)
+  let y : Circuit ℚ ℚ ← const (2 : ℚ)
+  let z : Circuit ℚ ℚ ← add x y
   mul z z
 
 
