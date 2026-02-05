@@ -75,8 +75,7 @@ instance partialOrderSortOps : PartialOrder SortOpsCost where
 
 @[simp, grind]
 def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) SortOpsCost where
-  evalQuery q :=
-    match q with
+  evalQuery
     | .cmpLT x y =>
             if x < y then
               true
