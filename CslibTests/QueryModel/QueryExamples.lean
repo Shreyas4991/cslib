@@ -6,7 +6,7 @@ Authors: Shreyas Srinivas
 
 module
 
-public import Cslib.Algorithms.QueryModel
+public import Cslib.AlgorithmsTheory.QueryModel
 
 
 @[expose] public section
