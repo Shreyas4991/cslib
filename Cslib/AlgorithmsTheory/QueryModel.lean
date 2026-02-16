@@ -79,6 +79,21 @@ def Prog.time [Add Cost] [Zero Cost] [PureCosts Cost]
       let qval := M.evalQuery op
       t₁ + (time (cont qval) M)
 
+lemma Prog.time.bind_pure [iAdd : Add Cost]
+  [iZero : Zero Cost] [iPC : PureCosts Cost] (M : Model Q Cost) :
+  Prog.time (FreeM.bind op (fun rest => FreeM.pure x)) M = (Prog.time op M) + pureCost:= by
+  unfold time
+  induction op with
+  | pure a =>
+      simp
+      sorry
+  | liftBind op cont ih =>
+      simp
+      specialize ih (M.evalQuery op)
+      simp at ih
+      sorry
+
+
 section Reduction
 
 structure Reduction (Q₁ Q₂ : Type u → Type u) where

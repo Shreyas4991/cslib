@@ -37,44 +37,8 @@ inductive SortOps (α : Type) : Type → Type  where
 
 open SortOps
 
-@[ext]
-structure SortOpsCost where
-  compares : ℕ
-  inserts : ℕ
-  pure : ℕ
-
 @[simp, grind]
-instance pcSortOps : PureCosts SortOpsCost where
-  pureCost := ⟨0,0,1⟩
-
-@[simp, grind]
-instance zeroSortOps : Zero SortOpsCost := ⟨0,0,0⟩
-
-@[simp, grind]
-instance addSortOps : Add SortOpsCost where
-  add | ⟨c₁, i₁, p₁⟩, ⟨c₂, i₂, p₂⟩ => ⟨c₁ + c₂, i₁ + i₂, p₁ + p₂⟩
-
-@[simp]
-instance partialOrderSortOps : PartialOrder SortOpsCost where
-  le | ⟨c₁, i₁, p₁⟩, ⟨c₂, i₂, p₂⟩ => c₁ ≤ c₂ ∧ i₁ ≤ i₂ ∧ p₁ ≤ p₂
-  le_refl := by
-    intro c
-    simp only [le_refl, and_self]
-  le_trans a b c := by
-    simp only [and_imp]
-    intro ab_comps ab_inserts ab_pures bc_comps bc_inserts bc_pures
-    refine ⟨?_, ?_, ?_⟩
-    all_goals solve_by_elim [Nat.le_trans]
-  le_antisymm := by
-    intro ⟨a_comps, a_inserts, a_pures⟩ ⟨b_comps, b_inserts, b_pures⟩
-    simp only [SortOpsCost.mk.injEq, and_imp]
-    intro ab_comps ab_inserts ab_pures ba_comps ba_inserts ba_pures
-    refine ⟨?_, ?_, ?_⟩
-    all_goals solve_by_elim[Nat.le_antisymm]
-
-
-@[simp, grind]
-def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) SortOpsCost where
+def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
   evalQuery q :=
     match q with
     | .cmpLT x y =>
@@ -85,43 +49,8 @@ def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) SortOpsCost wher
     | .insertHead l x => x :: l
   cost q :=
     match q with
-    | .cmpLT _ _ => ⟨1,0,0⟩
-    | .insertHead _ _ => ⟨0,1,0⟩
-
-lemma SortModel_cmpquery_iff [LinearOrder α] (x y : α) :
-  (sortModel α).evalQuery (cmpLT x y) ↔ x < y := by
-  simp [sortModel]
-
-lemma SortModel_insertHeadquery_iff [LinearOrder α] (l : List α) (x : α) :
-  (sortModel α).evalQuery (insertHead l x) = x :: l := by
-  simp [sortModel]
-
-lemma SortModel_addComponents [LinearOrder α] (m₁ m₂ m₃ : SortOpsCost) :
-  m₁ + m₂ = m₃ ↔
-    m₁.compares + m₂.compares = m₃.compares ∧
-      m₁.inserts + m₂.inserts = m₃.inserts ∧
-        m₁.pure + m₂.pure = m₃.pure := by
-  simp only [HAdd.hAdd, addSortOps]
-  simp only [instAddNat, Nat.add_eq]
-  aesop
-
-lemma SortModel_leComponents (m₁ m₂ : SortOpsCost) :
-  m₁ ≤ m₂ ↔
-    m₁.compares ≤ m₂.compares ∧
-      m₁.inserts ≤ m₂.inserts ∧
-        m₁.pure ≤ m₂.pure := by
-  simp only [LE.le]
-
-def insertOrdNaive (l : List α) [LinearOrder α] (x : α) :=
-  match l with
-  | [] => [x]
-  | a :: as => if a < x then insertOrdNaive as x else x :: (a :: as)
-
-
-
-
-
-
+    | .cmpLT _ _ => 1
+    | .insertHead _ _ => 1
 
 
 /-- Merge two sorted lists using comparisons in the query monad. -/
@@ -153,14 +82,14 @@ def merge (x y : List α) : Prog (SortOps α) (List α) := do
         return (y :: rest)
 
 lemma merge_timeComplexity [LinearOrder α] (x y : List α) :
-  (merge x y).time (sortModel α) = ⟨min x.length y.length , 0 ,1⟩ := by
+  (merge x y).time (sortModel α) = 1 + min x.length y.length := by
   fun_induction merge
-  · simp
-  · simp
+  · simp [PureCosts.pureCost]
+  · simp [PureCosts.pureCost]
   · expose_names
     simp
     split_ifs with hxy
-    · 
+    · simp [time, PureCosts.pureCost]
       done
     · done
 
@@ -172,18 +101,18 @@ lemma merge_is_mergeNaive [LinearOrder α] (x y : List α) :
   · expose_names
     simp [Id.run]
   · expose_names
-    simp only [Prog.eval, Id.run, pure, addSortOps, zeroSortOps, pcSortOps, sortModel,
+    simp only [Prog.eval, Id.run, pure, sortModel,
       Bool.if_false_right, Bool.and_true, merge, bind, FreeM.lift_def, FreeM.liftBind_bind,
       FreeM.pure_bind, FreeM.liftM_liftBind, decide_eq_true_eq]
-    simp_all only [Prog.eval, pure, addSortOps, zeroSortOps, pcSortOps, sortModel,
+    simp_all only [Prog.eval, pure, sortModel,
       Bool.if_false_right, Bool.and_true, ↓reduceIte, FreeM.liftM_bind, bind,
       FreeM.liftM_pure, List.cons.injEq, true_and, rest]
     exact ih1
-  · simp only [Prog.eval, Id.run, pure, addSortOps, zeroSortOps, pcSortOps, sortModel,
+  · simp only [Prog.eval, Id.run, pure, sortModel,
     Bool.if_false_right, Bool.and_true, merge, bind, FreeM.lift_def, FreeM.liftBind_bind,
     FreeM.pure_bind, FreeM.liftM_liftBind, decide_eq_true_eq]
     rename_i rest ih1
-    simp_all only [not_lt, Prog.eval, pure, addSortOps, zeroSortOps, pcSortOps, sortModel,
+    simp_all only [not_lt, Prog.eval, pure, sortModel,
       Bool.if_false_right, Bool.and_true, rest]
     split
     next h_1 =>
@@ -200,13 +129,13 @@ lemma merge_is_mergeNaive [LinearOrder α] (x y : List α) :
 
 
 
-/-- Split a list into two lists by alternating elements. -/
-def split (xs : List Nat) : List Nat × List Nat :=
-  let rec go : List Nat → List Nat → List Nat → List Nat × List Nat
-    | [], accL, accR => (accL.reverse, accR.reverse)
-    | [x], accL, accR => ((x :: accL).reverse, accR.reverse)
-    | x :: y :: xs, accL, accR => go xs (x :: accL) (y :: accR)
-  go xs [] []
+-- /-- Split a list into two lists by alternating elements. -/
+-- def split (xs : List Nat) : List Nat × List Nat :=
+--   let rec go : List Nat → List Nat → List Nat → List Nat × List Nat
+--     | [], accL, accR => (accL.reverse, accR.reverse)
+--     | [x], accL, accR => ((x :: accL).reverse, accR.reverse)
+--     | x :: y :: xs, accL, accR => go xs (x :: accL) (y :: accR)
+--   go xs [] []
 
 -- /-- Merge sort expressed as a program in the query model.
 -- TODO: Working version without partial -/
