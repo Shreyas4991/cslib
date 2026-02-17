@@ -126,7 +126,6 @@ lemma Prog.time.liftBind [AddCommSemigroup Cost] [iPC : PureCost Cost] (M : Mode
     rw [AddSemigroup.add_assoc]
     arg 2
     rw [AddCommSemigroup.add_comm]
-
   grind
 
 section Reduction
