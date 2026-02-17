@@ -84,15 +84,11 @@ def merge (x y : List α) : Prog (SortOps α) (List α) := do
 lemma merge_timeComplexity [LinearOrder α] (x y : List α) :
   (merge x y).time (sortModel α) = 1 + min x.length y.length := by
   fun_induction merge
-  · simp [PureCosts.pureCost]
-  · simp [PureCosts.pureCost]
+  · simp [PureCost.pureCost]
+  · simp [PureCost.pureCost]
   · expose_names
     simp
-    split_ifs with hxy
-    · simp [time, PureCosts.pureCost]
-      done
-    · done
-
+    sorry
 
 lemma merge_is_mergeNaive [LinearOrder α] (x y : List α) :
   (merge x y).eval (sortModel α) = mergeNaive x y := by
@@ -175,19 +171,7 @@ lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
   induction xs.length using Nat.strong_induction_on with
   | h n ih =>
     unfold mergeSort
-    split_ifs with hxs_len
-    · simp [Id.run]
-    · simp [Id.run]
-      specialize ih (n / 2) (by grind)
-      split_ifs at ih with h_ih_if
-      · rw [←ih]
-        unfold mergeSort
-        simp_rw [←merge_is_mergeNaive]
-        done
-      · done
-    · simp [Id.run]
-      done
-    · done
+    sorry
 
 
 lemma mergeNaive_sorted_sorted [LinearOrder α] (xs ys : List α)

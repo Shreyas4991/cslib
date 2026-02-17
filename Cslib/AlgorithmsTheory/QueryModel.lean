@@ -21,7 +21,7 @@ parametric type of query operations.
 
 ## Main definitions
 
-- `PureCosts`  : A typeclass that every model needs to log or cost pure monadic operations
+- `PureCost`  : A typeclass that every model needs to log or cost pure monadic operations
 - `Model Q c` : A model type for a query type `Q : Type u → Type u` and cost type `c`
 - `Prog Q α` : The type of programs of query type `Q` and return type `α`. This is a free monad
       under the hood
@@ -37,7 +37,7 @@ and complexity of algorithms in lean. To specify an algorithm, one must:
   the index type depends. This way, any instance parameters of `α` can be used easily
   for the output types. The signatures of `Model.evalQuery` and `Model.Cost` are fixed.
   So you can't supply instances for the index type there.
-2. Define one or more cost types `C` and instances of `PureCosts` for this cost type.
+2. Define one or more cost types `C` and instances of `PureCost` for this cost type.
 3. Define a `Model Q C` type instance
 4. Write your algorithm as a monadic program in `Prog Q α`. With sufficient type anotations
   each query `q : Q` is automatically lifted into `Prog Q α`.

@@ -1,7 +1,7 @@
 module  -- shake: keep-all
 
 public import Cslib.AlgorithmsTheory.Algorithms.MergeSort
-public import Cslib.AlgorithmsTheory.Models.ParametricWordRAM
+public import Cslib.AlgorithmsTheory.StandardModels.ParametricWordRAM
 public import Cslib.AlgorithmsTheory.QueryModel
 public import Cslib.AlgorithmsTheory.Lean.MergeSort.MergeSort
 public import Cslib.AlgorithmsTheory.Lean.TimeM
