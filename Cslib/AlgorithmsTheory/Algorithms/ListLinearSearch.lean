@@ -34,14 +34,22 @@ structure CmpCount where
   cmp : ℕ
   pure : ℕ
 
-instance : Add (CmpCount) where
+instance cmpCountAdd : Add (CmpCount) where
   add x y := ⟨x.1 + y.1, x.2 + y.2⟩
 
 instance : Zero (CmpCount) where
   zero := ⟨0,0⟩
 
-instance : PureCosts (CmpCount) where
+instance : PureCost (CmpCount) where
   pureCost := ⟨0,1⟩
+
+instance : AddCommSemigroup (CmpCount) where
+  add_assoc a b c := by
+    simp [HAdd.hAdd]
+    simp [cmpCountAdd, instAddNat, Nat.add_assoc]
+  add_comm a b := by
+    simp [HAdd.hAdd]
+    simp [cmpCountAdd, instAddNat, Nat.add_comm]
 
 def ListSearch_Cmp [DecidableEq α] : Model (ListSearch α) CmpCount where
   evalQuery q :=
@@ -103,18 +111,18 @@ lemma listLinearSearchM_time_complexity_upper_bound [DecidableEq α] (l : List �
   intro x
   induction l with
   | nil =>
-      simp_all [listLinearSearch, ListSearch_Nat, time, PureCosts.pureCost]
+      simp_all [listLinearSearch, ListSearch_Nat, time, PureCost.pureCost]
   | cons head tail ih =>
       simp_all [listLinearSearch, ListSearch_Nat, time]
       split_ifs with h_head
-      · simp [time, PureCosts.pureCost]
+      · simp [time, PureCost.pureCost]
       · grind
 
 lemma listLinearSearchM_time_complexity_lower_bound [DecidableEq α] [inon : Nontrivial α] :
   ∃ l : List α, ∃ x : α, (listLinearSearch l x).time ListSearch_Nat = 1 + l.length := by
   obtain ⟨x, y, x_neq_y⟩ := inon
   use [x,x,x,x,x,y], y
-  simp_all [time, ListSearch_Nat, listLinearSearch, PureCosts.pureCost]
+  simp_all [time, ListSearch_Nat, listLinearSearch, PureCost.pureCost]
 
 end Algorithms
 end Cslib

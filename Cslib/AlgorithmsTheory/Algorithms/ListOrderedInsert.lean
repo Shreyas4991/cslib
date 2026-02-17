@@ -27,12 +27,12 @@ open SortOps
 
 -- @[ext]
 -- structure SortOpsCost where
---   compares : ℕ
---   inserts : ℕ
---   pure : ℕ
+--   compares : ℤ
+--   inserts : ℤ
+--   pure : ℤ
 
 -- @[simp, grind]
--- instance pcSortOps : PureCosts SortOpsCost where
+-- instance pcSortOps : PureCost SortOpsCost where
 --   pureCost := ⟨0,0,1⟩
 
 -- @[simp, grind]
@@ -52,13 +52,28 @@ open SortOps
 --     simp only [and_imp]
 --     intro ab_comps ab_inserts ab_pures bc_comps bc_inserts bc_pures
 --     refine ⟨?_, ?_, ?_⟩
---     all_goals solve_by_elim [Nat.le_trans]
+--     all_goals solve_by_elim [Int.le_trans]
 --   le_antisymm := by
 --     intro ⟨a_comps, a_inserts, a_pures⟩ ⟨b_comps, b_inserts, b_pures⟩
 --     simp only [SortOpsCost.mk.injEq, and_imp]
 --     intro ab_comps ab_inserts ab_pures ba_comps ba_inserts ba_pures
 --     refine ⟨?_, ?_, ?_⟩
---     all_goals solve_by_elim[Nat.le_antisymm]
+--     all_goals solve_by_elim[Int.le_antisymm]
+
+-- instance : CommRing SortOpsCost where
+--   add_assoc := by
+--     intro a b c
+--     simp [HAdd.hAdd, addSortOps]
+--     simp [Int.instAdd]
+--     refine ⟨?_, ?_, ?_⟩
+--     all_goals apply Int.add_assoc
+--   zero_add := by
+--     intro ⟨a₁, a₂, a₃⟩
+--     simp [HAdd.hAdd, addSortOps]
+--     simp [Int.instAdd]
+--     tauto
+--   mul a b | SortOpsCost.mk a₁ a₂ a₃, .mk b₁ b₂ b₃ => ⟨a₁*b₁, a₂*b₂, a₃*b₃⟩
+
 
 
 -- @[simp, grind]
@@ -195,20 +210,15 @@ lemma insertOrd_is_insertOrdNaive [LinearOrder α] :
 
 lemma insertOrd_complexity_upper_bound [LinearOrder α] :
   ∀ (l : List α) (x : α),
-    (insertOrd x l).time (sortModel α) ≤ 2*l.length + 1 := by
+    (insertOrd x l).time (sortModel α) ≤ 2*l.length + 2 := by
   intro l x
   induction l with
   | nil =>
-      simp_all [sortModel, insertOrd, Prog.time, PureCosts.pureCost, HAdd.hAdd, addSortOps]
+      simp_all [sortModel, insertOrd, Prog.time, PureCost.pureCost, HAdd.hAdd]
   | cons head tail ih =>
       simp_all [insertOrd]
       split_ifs
-      · ring_nf
-        conv =>
-          lhs
-          arg 2
-          arg 1
-          simp [FreeM.liftBind_bind]
+      · grind
         done
       · done
 

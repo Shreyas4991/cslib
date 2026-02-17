@@ -48,14 +48,25 @@ query model, free monad, time complexity, Prog
 
 namespace Cslib.Algorithms
 
-class PureCosts (α : Type u) where
+class PureCost (α : Type u) where
   pureCost : α
 
-scoped instance : PureCosts ℕ where
+open PureCost
+
+scoped instance : PureCost ℕ where
   pureCost := 1
 
-structure Model (QType : Type u → Type u) (Cost : Type) [Add Cost] [Zero Cost]
-  [PureCosts Cost] where
+scoped instance : PureCost ℤ where
+  pureCost := 1
+
+scoped instance : PureCost ℚ where
+  pureCost := 1
+
+scoped instance : PureCost ℝ where
+  pureCost := 1
+
+structure Model (QType : Type u → Type u) (Cost : Type)
+  [AddCommSemigroup Cost] [PureCost Cost] where
   evalQuery : QType ι → ι
   cost : QType ι → Cost
 
@@ -65,34 +76,57 @@ instance {Q α} : Coe (Q α) (FreeM Q α) where
   coe := FreeM.lift
 
 @[simp, grind]
-def Prog.eval [Add Cost] [Zero Cost] [PureCosts Cost]
+def Prog.eval [AddCommSemigroup Cost] [PureCost Cost]
   (P : Prog Q α) (M : Model Q Cost) : α :=
   Id.run <| P.liftM fun x => pure (M.evalQuery x)
 
 @[simp, grind]
-def Prog.time [Add Cost] [Zero Cost] [PureCosts Cost]
+def Prog.time [AddCommSemigroup Cost] [PureCost Cost]
   (P : Prog Q α) (M : Model Q Cost) : Cost :=
   match P with
-  | .pure _ => PureCosts.pureCost
+  | .pure _ => pureCost
   | .liftBind op cont =>
       let t₁ := M.cost op
       let qval := M.evalQuery op
       t₁ + (time (cont qval) M)
 
-lemma Prog.time.bind_pure [iAdd : Add Cost]
-  [iZero : Zero Cost] [iPC : PureCosts Cost] (M : Model Q Cost) :
-  Prog.time (FreeM.bind op (fun rest => FreeM.pure x)) M = (Prog.time op M) + pureCost:= by
-  unfold time
+@[simp, grind =]
+lemma Prog.time.bind_pure [AddCommSemigroup Cost] [iPC : PureCost Cost] (M : Model Q Cost) :
+  Prog.time (op >>= FreeM.pure) M = (Prog.time op M) := by
+  simp only [bind, FreeM.bind_pure]
+
+@[simp, grind =]
+lemma Prog.time.pure_bind
+  [iZero : CommRing Cost] [iPC : PureCost Cost] (M : Model Q Cost) :
+  Prog.time (FreeM.pure x >>= m) M = (m x).time M := by
+  rfl
+
+@[simp, grind =]
+lemma Prog.time.bind [AddCommSemigroup Cost] [iPC : PureCost Cost] (M : Model Q Cost)
+  (op : Prog Q ι) (cont : ι → Prog Q α) :
+  Prog.time (op >>= cont) M + pureCost =
+    (Prog.time op M) + (Prog.time (cont (Prog.eval op M)) M):= by
+  simp only [Bind.bind, eval, pure]
   induction op with
   | pure a =>
-      simp
-      sorry
-  | liftBind op cont ih =>
+      simp [Id.run, AddCommSemigroup.add_comm]
+  | liftBind op cont' ih =>
       simp
       specialize ih (M.evalQuery op)
-      simp at ih
-      sorry
+      grind
 
+@[simp, grind =]
+lemma Prog.time.liftBind [AddCommSemigroup Cost] [iPC : PureCost Cost] (M : Model Q Cost)
+  (op : Q ι) (cont : ι → Prog Q α) :
+  Prog.time (.liftBind op cont) M + pureCost =
+    (Prog.time (FreeM.lift op) M) + (Prog.time (cont (M.evalQuery op)) M):= by
+  simp only [time, FreeM.lift_def]
+  conv =>
+    rhs
+    rw [AddSemigroup.add_assoc]
+    arg 2
+    rw [AddCommSemigroup.add_comm]
+  grind
 
 section Reduction
 
