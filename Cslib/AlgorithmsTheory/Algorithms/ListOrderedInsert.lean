@@ -244,7 +244,7 @@ lemma hbind_inserts [LinearOrder α] :
   simp only [Add.add, Int.add_def, add_zero] at h
   exact h
 
-lemma hbind_pure [LinearOrder α]:
+lemma hbind_pure [LinearOrder α] :
   (Prog.time
       (FreeM.bind (insertOrd x tail)
         (fun res => FreeM.liftBind (insertHead res head) FreeM.pure))
