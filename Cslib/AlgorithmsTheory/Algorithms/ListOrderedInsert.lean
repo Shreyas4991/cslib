@@ -236,7 +236,7 @@ lemma insertOrd_complexity_upper_bound [LinearOrder α] :
               (cont := fun res => FreeM.liftBind (insertHead res head) FreeM.pure))
           simp only [HAdd.hAdd, acsSortOpsCost, pcSortOps, bind, sortModel, Bool.if_false_right,
             Bool.and_true, PureCost.pureCost, add_compares, time, eval, pure] at h
-          simp [Add.add] at h
+          simp only [Add.add, Int.add_def, add_zero] at h
           exact h
         have hbind_inserts :
             (Prog.time
@@ -250,7 +250,7 @@ lemma insertOrd_complexity_upper_bound [LinearOrder α] :
               (cont := fun res => FreeM.liftBind (insertHead res head) FreeM.pure))
           simp only [HAdd.hAdd, acsSortOpsCost, pcSortOps, bind, sortModel, Bool.if_false_right,
             Bool.and_true, PureCost.pureCost, add_inserts, time, eval, pure] at h
-          simp [Add.add] at h
+          simp only [Add.add, Int.add_def, add_zero] at h
           exact h
         have hbind_pure :
             (Prog.time
@@ -268,7 +268,7 @@ lemma insertOrd_complexity_upper_bound [LinearOrder α] :
           exact h
         refine ⟨?_, ?_, ?_⟩
         · clear h₂ h₃
-          simp [HAdd.hAdd, acsSortOpsCost, add_compares]
+          simp only [HAdd.hAdd, acsSortOpsCost, add_compares]
           change (Add.add 1
             (time (FreeM.bind (insertOrd x tail) fun res =>
               FreeM.liftBind (insertHead res head) FreeM.pure) (sortModel α)).compares ≤
@@ -277,7 +277,7 @@ lemma insertOrd_complexity_upper_bound [LinearOrder α] :
           simp [Add.add]
           linarith [h₁]
         · clear h₁ h₃
-          simp [HAdd.hAdd, acsSortOpsCost, add_inserts]
+          simp only [HAdd.hAdd, acsSortOpsCost, add_inserts]
           change (Add.add 0
             (time (FreeM.bind (insertOrd x tail) fun res =>
               FreeM.liftBind (insertHead res head) FreeM.pure) (sortModel α)).inserts ≤
@@ -286,7 +286,7 @@ lemma insertOrd_complexity_upper_bound [LinearOrder α] :
           simp [Add.add]
           linarith [h₂]
         · clear h₁ h₂
-          simp [HAdd.hAdd, acsSortOpsCost, add_pure]
+          simp only [HAdd.hAdd, acsSortOpsCost, add_pure]
           change (Add.add 0
             (time (FreeM.bind (insertOrd x tail) fun res =>
               FreeM.liftBind (insertHead res head) FreeM.pure) (sortModel α)).pure ≤
