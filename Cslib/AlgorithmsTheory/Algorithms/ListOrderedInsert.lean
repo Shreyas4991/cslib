@@ -202,18 +202,15 @@ lemma insertOrd_complexity_upper_bound [LinearOrder α] :
     (insertOrd x l).time (sortModel α) ≤ ⟨l.length, l.length + 1, 1⟩ := by
   intro l x
   induction l with
-  | nil =>
-      simp_all [sortModel, insertOrd, Prog.time, PureCost.pureCost,
-        HAdd.hAdd]
-      simp [Add.add]
-      sorry
+  | nil => rfl
   | cons head tail ih =>
-      simp_all [insertOrd]
+      simp_all only [partialOrderSortOps, not_and, not_le, pcSortOps, sortModel,
+        Bool.if_false_right, Bool.and_true, insertOrd, bind, FreeM.lift_def, FreeM.liftBind_bind,
+        FreeM.pure_bind, time.eq_2, decide_eq_true_eq, List.length_cons, Nat.cast_add, Nat.cast_one]
       split_ifs with h_head
       · obtain ⟨h₁,h₂, h₃⟩ := ih
         refine ⟨?_, ?_, ?_⟩
         · clear h₂ h₃
-          simp [HAdd.hAdd, acsSortOpsCost, Int.instRing]
           conv =>
             lhs
             arg 1

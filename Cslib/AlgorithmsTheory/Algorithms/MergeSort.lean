@@ -37,7 +37,6 @@ inductive SortOps (α : Type) : Type → Type  where
 
 open SortOps
 
-@[simp, grind]
 def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
   evalQuery q :=
     match q with
@@ -52,6 +51,10 @@ def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
     | .cmpLT _ _ => 1
     | .insertHead _ _ => 1
 
+@[simp, grind =]
+lemma cost_cmpLT {α : Type} [LinearOrder α] {x y : α} :
+    (sortModel α).cost (cmpLT x y) = 1 := by
+  simp [sortModel]
 
 /-- Merge two sorted lists using comparisons in the query monad. -/
 def mergeNaive [LinearOrder α] (x y : List α) : List α :=
@@ -82,13 +85,18 @@ def merge (x y : List α) : Prog (SortOps α) (List α) := do
         return (y :: rest)
 
 lemma merge_timeComplexity [LinearOrder α] (x y : List α) :
-  (merge x y).time (sortModel α) = 1 + min x.length y.length := by
+  (merge x y).time (sortModel α) ≤ x.length + y.length - 1 := by
   fun_induction merge
   · simp [PureCost.pureCost]
   · simp [PureCost.pureCost]
   · expose_names
-    simp
-    sorry
+    simp only [bind, FreeM.lift_def, pure, FreeM.liftBind_bind, FreeM.pure_bind, Prog.time.eq_2,
+      cost_cmpLT, List.length_cons, Nat.add_succ_sub_one]
+    split_ifs
+    · simp only [Prog.time_bind_pure]
+      grind
+    · simp only [Prog.time_bind_pure]
+      grind
 
 lemma merge_is_mergeNaive [LinearOrder α] (x y : List α) :
   (merge x y).eval (sortModel α) = mergeNaive x y := by

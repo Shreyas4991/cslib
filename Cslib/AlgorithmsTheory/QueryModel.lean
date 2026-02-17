@@ -54,16 +54,16 @@ class PureCost (α : Type u) where
 open PureCost
 
 scoped instance : PureCost ℕ where
-  pureCost := 1
+  pureCost := 0
 
 scoped instance : PureCost ℤ where
-  pureCost := 1
+  pureCost := 0
 
 scoped instance : PureCost ℚ where
-  pureCost := 1
+  pureCost := 0
 
 scoped instance : PureCost ℝ where
-  pureCost := 1
+  pureCost := 0
 
 structure Model (QType : Type u → Type u) (Cost : Type)
   [AddCommSemigroup Cost] [PureCost Cost] where
@@ -127,6 +127,14 @@ lemma Prog.time.liftBind [AddCommSemigroup Cost] [iPC : PureCost Cost] (M : Mode
     arg 2
     rw [AddCommSemigroup.add_comm]
   grind
+
+@[simp]
+lemma Prog.time_bind_pure [AddCommSemigroup Cost] [iPC : PureCost Cost] (M : Model Q Cost)
+    (P : Prog Q α) (f : α → α) :
+    Prog.time (FreeM.bind P fun x => FreeM.pure (f x)) M = Prog.time P M := by
+  induction P with
+  | pure x => simp
+  | liftBind o x ih => simp [ih]
 
 section Reduction
 
