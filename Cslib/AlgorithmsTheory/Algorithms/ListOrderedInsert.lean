@@ -25,98 +25,61 @@ inductive SortOps (α : Type) : Type → Type  where
 
 open SortOps
 
--- @[ext]
--- structure SortOpsCost where
---   compares : ℤ
---   inserts : ℤ
---   pure : ℤ
-
--- @[simp, grind]
--- instance pcSortOps : PureCost SortOpsCost where
---   pureCost := ⟨0,0,1⟩
-
--- @[simp, grind]
--- instance zeroSortOps : Zero SortOpsCost := ⟨0,0,0⟩
-
--- @[simp, grind]
--- instance addSortOps : Add SortOpsCost where
---   add | ⟨c₁, i₁, p₁⟩, ⟨c₂, i₂, p₂⟩ => ⟨c₁ + c₂, i₁ + i₂, p₁ + p₂⟩
-
--- @[simp]
--- instance partialOrderSortOps : PartialOrder SortOpsCost where
---   le | ⟨c₁, i₁, p₁⟩, ⟨c₂, i₂, p₂⟩ => c₁ ≤ c₂ ∧ i₁ ≤ i₂ ∧ p₁ ≤ p₂
---   le_refl := by
---     intro c
---     simp only [le_refl, and_self]
---   le_trans a b c := by
---     simp only [and_imp]
---     intro ab_comps ab_inserts ab_pures bc_comps bc_inserts bc_pures
---     refine ⟨?_, ?_, ?_⟩
---     all_goals solve_by_elim [Int.le_trans]
---   le_antisymm := by
---     intro ⟨a_comps, a_inserts, a_pures⟩ ⟨b_comps, b_inserts, b_pures⟩
---     simp only [SortOpsCost.mk.injEq, and_imp]
---     intro ab_comps ab_inserts ab_pures ba_comps ba_inserts ba_pures
---     refine ⟨?_, ?_, ?_⟩
---     all_goals solve_by_elim[Int.le_antisymm]
-
--- instance : CommRing SortOpsCost where
---   add_assoc := by
---     intro a b c
---     simp [HAdd.hAdd, addSortOps]
---     simp [Int.instAdd]
---     refine ⟨?_, ?_, ?_⟩
---     all_goals apply Int.add_assoc
---   zero_add := by
---     intro ⟨a₁, a₂, a₃⟩
---     simp [HAdd.hAdd, addSortOps]
---     simp [Int.instAdd]
---     tauto
---   mul a b | SortOpsCost.mk a₁ a₂ a₃, .mk b₁ b₂ b₃ => ⟨a₁*b₁, a₂*b₂, a₃*b₃⟩
-
-
-
--- @[simp, grind]
--- def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) SortOpsCost where
---   evalQuery q :=
---     match q with
---     | .cmpLT x y =>
---             if x < y then
---               true
---             else
---               false
---     | .insertHead l x => x :: l
---   cost q :=
---     match q with
---     | .cmpLT _ _ => ⟨1,0,0⟩
---     | .insertHead _ _ => ⟨0,1,0⟩
-
--- lemma SortModel_cmpquery_iff [LinearOrder α] (x y : α) :
---   (sortModel α).evalQuery (cmpLT x y) ↔ x < y := by
---   simp [sortModel]
-
--- lemma SortModel_insertHeadquery_iff [LinearOrder α] (l : List α) (x : α) :
---   (sortModel α).evalQuery (insertHead l x) = x :: l := by
---   simp [sortModel]
-
--- lemma SortModel_addComponents [LinearOrder α] (m₁ m₂ m₃ : SortOpsCost) :
---   m₁ + m₂ = m₃ ↔
---     m₁.compares + m₂.compares = m₃.compares ∧
---       m₁.inserts + m₂.inserts = m₃.inserts ∧
---         m₁.pure + m₂.pure = m₃.pure := by
---   simp only [HAdd.hAdd, addSortOps]
---   simp only [instAddNat, Nat.add_eq]
---   aesop
-
--- lemma SortModel_leComponents (m₁ m₂ : SortOpsCost) :
---   m₁ ≤ m₂ ↔
---     m₁.compares ≤ m₂.compares ∧
---       m₁.inserts ≤ m₂.inserts ∧
---         m₁.pure ≤ m₂.pure := by
---   simp only [LE.le]
+@[ext]
+structure SortOpsCost where
+  compares : ℤ
+  inserts : ℤ
+  pure : ℤ
 
 @[simp, grind]
-def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
+instance pcSortOps : PureCost SortOpsCost where
+  pureCost := ⟨0,0,1⟩
+
+@[simp, grind]
+instance zeroSortOps : Zero SortOpsCost := ⟨0,0,0⟩
+
+
+@[simp]
+instance partialOrderSortOps : PartialOrder SortOpsCost where
+  le | ⟨c₁, i₁, p₁⟩, ⟨c₂, i₂, p₂⟩ => c₁ ≤ c₂ ∧ i₁ ≤ i₂ ∧ p₁ ≤ p₂
+  le_refl := by
+    intro c
+    simp only [le_refl, and_self]
+  le_trans a b c := by
+    simp only [and_imp]
+    intro ab_comps ab_inserts ab_pures bc_comps bc_inserts bc_pures
+    refine ⟨?_, ?_, ?_⟩
+    all_goals solve_by_elim [Int.le_trans]
+  le_antisymm := by
+    intro ⟨a_comps, a_inserts, a_pures⟩ ⟨b_comps, b_inserts, b_pures⟩
+    simp only [SortOpsCost.mk.injEq, and_imp]
+    intro ab_comps ab_inserts ab_pures ba_comps ba_inserts ba_pures
+    refine ⟨?_, ?_, ?_⟩
+    all_goals solve_by_elim[Int.le_antisymm]
+
+def add : SortOpsCost → SortOpsCost → SortOpsCost
+  | ⟨c₁, i₁, p₁⟩, ⟨c₂, i₂, p₂⟩ => ⟨c₁ + c₂, i₁ + i₂, p₁ + p₂⟩
+
+def nsmul (n : ℕ) (x : SortOpsCost) : SortOpsCost :=
+  match n with
+  | 0 => 0
+  | m + 1 => add x (nsmul m x)
+
+instance acsSortOpsCost : AddCommSemigroup SortOpsCost where
+  add := add
+  add_assoc := by
+    intro a b c
+    simp [HAdd.hAdd]
+    simp [add, Int.instAdd, Int.add_assoc]
+  add_comm := by
+    intro a b
+    simp [HAdd.hAdd]
+    simp [add, Int.instAdd, Int.add_comm]
+
+
+
+@[simp, grind]
+def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) SortOpsCost where
   evalQuery q :=
     match q with
     | .cmpLT x y =>
@@ -127,8 +90,34 @@ def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
     | .insertHead l x => x :: l
   cost q :=
     match q with
-    | .cmpLT _ _ => 1
-    | .insertHead _ _ => 1
+    | .cmpLT _ _ => ⟨1,0,0⟩
+    | .insertHead _ _ => ⟨0,1,0⟩
+
+lemma SortModel_cmpquery_iff [LinearOrder α] (x y : α) :
+  (sortModel α).evalQuery (cmpLT x y) ↔ x < y := by
+  simp [sortModel]
+
+lemma SortModel_insertHeadquery_iff [LinearOrder α] (l : List α) (x : α) :
+  (sortModel α).evalQuery (insertHead l x) = x :: l := by
+  simp [sortModel]
+
+lemma SortModel_addComponents [LinearOrder α] (m₁ m₂ m₃ : SortOpsCost) :
+  m₁ + m₂ = m₃ ↔
+    m₁.compares + m₂.compares = m₃.compares ∧
+      m₁.inserts + m₂.inserts = m₃.inserts ∧
+        m₁.pure + m₂.pure = m₃.pure := by
+  simp only [HAdd.hAdd]
+  simp only [Int.instAdd]
+  aesop
+
+lemma SortModel_leComponents (m₁ m₂ : SortOpsCost) :
+  m₁ ≤ m₂ ↔
+    m₁.compares ≤ m₂.compares ∧
+      m₁.inserts ≤ m₂.inserts ∧
+        m₁.pure ≤ m₂.pure := by
+  simp only [LE.le]
+
+
 
 def insertOrdNaive (x : α) (l : List α) [LinearOrder α] :=
   match l with
@@ -210,17 +199,37 @@ lemma insertOrd_is_insertOrdNaive [LinearOrder α] :
 
 lemma insertOrd_complexity_upper_bound [LinearOrder α] :
   ∀ (l : List α) (x : α),
-    (insertOrd x l).time (sortModel α) ≤ 2*l.length + 2 := by
+    (insertOrd x l).time (sortModel α) ≤ ⟨l.length, l.length + 1, 1⟩ := by
   intro l x
   induction l with
   | nil =>
-      simp_all [sortModel, insertOrd, Prog.time, PureCost.pureCost, HAdd.hAdd]
+      simp_all [sortModel, insertOrd, Prog.time, PureCost.pureCost,
+        HAdd.hAdd]
+      simp [Add.add]
   | cons head tail ih =>
       simp_all [insertOrd]
-      split_ifs
-      · grind
-        done
-      · done
+      split_ifs with h_head
+      · obtain ⟨h₁,h₂, h₃⟩ := ih
+        refine ⟨?_, ?_, ?_⟩
+        · clear h₂ h₃
+          simp [HAdd.hAdd, acsSortOpsCost, Int.instRing]
+          conv =>
+            lhs
+            arg 1
+            arg 2
+          done
+        · clear h₁ h₃
+          done
+        · clear h₁ h₂
+          done
+      · obtain ⟨h₁, h₂, h₃⟩ := ih
+        refine ⟨?_, ?_, ?_⟩
+        · clear h₂ h₃
+          done
+        · clear h₁ h₃
+          done
+        · clear h₁ h₂
+          done
 
 lemma insertOrd_Sorted [LinearOrder α] (l : List α) (x : α) :
   l.Pairwise (· ≤ ·) → ((insertOrd x l).eval (sortModel α)).Pairwise (· ≤ ·) := by
