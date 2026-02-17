@@ -206,6 +206,7 @@ lemma insertOrd_complexity_upper_bound [LinearOrder α] :
       simp_all [sortModel, insertOrd, Prog.time, PureCost.pureCost,
         HAdd.hAdd]
       simp [Add.add]
+      sorry
   | cons head tail ih =>
       simp_all [insertOrd]
       split_ifs with h_head
@@ -217,19 +218,19 @@ lemma insertOrd_complexity_upper_bound [LinearOrder α] :
             lhs
             arg 1
             arg 2
-          done
+          sorry
         · clear h₁ h₃
-          done
+          sorry
         · clear h₁ h₂
-          done
+          sorry
       · obtain ⟨h₁, h₂, h₃⟩ := ih
         refine ⟨?_, ?_, ?_⟩
         · clear h₂ h₃
-          done
+          sorry
         · clear h₁ h₃
-          done
+          sorry
         · clear h₁ h₂
-          done
+          sorry
 
 lemma insertOrd_Sorted [LinearOrder α] (l : List α) (x : α) :
   l.Pairwise (· ≤ ·) → ((insertOrd x l).eval (sortModel α)).Pairwise (· ≤ ·) := by
