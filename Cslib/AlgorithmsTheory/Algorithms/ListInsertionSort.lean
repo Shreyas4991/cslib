@@ -17,9 +17,6 @@ namespace Algorithms
 
 open Prog
 
-#check insertOrd
-#check List.foldr
-
 def insertionSort (l : List α) : Prog (SortOps α) (List α) :=
   match l with
   | [] => return []
