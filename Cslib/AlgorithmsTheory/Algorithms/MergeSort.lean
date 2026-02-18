@@ -138,7 +138,7 @@ lemma merge_is_mergeNaive [LinearOrder α] (x y : List α) :
       Bool.if_false_right, Bool.and_true, rest]
     split
     · simp_all only [FreeM.liftM_bind, bind, FreeM.liftM_pure, pure, List.cons.injEq]
-      apply And.intro
+      refine ⟨?_, ?_⟩
       · grind
       · grind
     · simp_all only [not_lt, FreeM.liftM_bind, bind, FreeM.liftM_pure, pure, List.cons.injEq,
