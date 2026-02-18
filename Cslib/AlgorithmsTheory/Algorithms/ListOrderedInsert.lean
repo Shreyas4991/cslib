@@ -160,6 +160,13 @@ lemma insertOrdNaive_mem [LinearOrder α]
       · simp at hx
         assumption
 
+lemma insertOrdNaive_length [LinearOrder α] (x : α) (l : List α) :
+  (insertOrdNaive x l).length = l.length + 1 := by
+  induction l with
+  | nil =>
+      simp [insertOrdNaive]
+  | cons head tail ih =>
+      by_cases h : head < x <;> simp [insertOrdNaive, h, ih]
 
 lemma insertOrdNaive_sorted [LinearOrder α] (x : α) (l : List α) :
   l.Pairwise (· ≤ ·) → (insertOrdNaive x l).Pairwise (· ≤ ·) := by
@@ -183,7 +190,6 @@ lemma insertOrdNaive_sorted [LinearOrder α] (x : α) (l : List α) :
           · simp only [List.pairwise_cons, List.mem_cons, forall_eq_or_imp, h₂, and_true]
             grind
 
-
 def insertOrd (x : α) (l : List α) : Prog (SortOps α) (List α) := do
   match l with
   | [] => insertHead l x
@@ -195,7 +201,6 @@ def insertOrd (x : α) (l : List α) : Prog (SortOps α) (List α) := do
         insertHead res a
       else
         insertHead (a :: as) x
-
 
 lemma insertOrd_is_insertOrdNaive [LinearOrder α] :
   ∀ (x : α) (l : List α) ,
@@ -213,6 +218,11 @@ lemma insertOrd_is_insertOrdNaive [LinearOrder α] :
         List.cons.injEq, true_and]
         exact ih
       · simp
+
+lemma insertOrd_length [LinearOrder α] (x : α) (l : List α) :
+  ((insertOrd x l).eval (sortModel α)).length = l.length + 1 := by
+  rw [insertOrd_is_insertOrdNaive]
+  simp [insertOrdNaive_length]
 
 lemma hbind_compares [LinearOrder α] :
   (Prog.time
