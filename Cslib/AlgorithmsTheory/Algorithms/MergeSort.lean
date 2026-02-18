@@ -258,10 +258,9 @@ lemma mergeSortNaive_length [LinearOrder α] (xs : List α) :
         have h₂ := ih ((List.drop (n / 2) xs)).length (by simp [List.length_drop]; grind)
         specialize h₁ (List.take (n / 2) xs)
         specialize h₂ (List.drop (n / 2) xs)
-
         by_cases hdrop : (List.drop (n / 2) xs).length < 2
         <;> by_cases htake : (List.take (n / 2) xs).length < 2
-        · simp_all
+        ·
           done
         · done
         · done
