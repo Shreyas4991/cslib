@@ -25,7 +25,7 @@ inductive SortOps (α : Type) : Type → Type  where
 
 open SortOps
 
-@[ext]
+@[ext, grind]
 structure SortOpsCost where
   compares : ℤ
   inserts : ℤ
@@ -93,15 +93,18 @@ def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) SortOpsCost wher
     | .cmpLT _ _ => ⟨1,0,0⟩
     | .insertHead _ _ => ⟨0,1,0⟩
 
+@[grind =]
 lemma SortModel_cmpquery_iff [LinearOrder α] (x y : α) :
   (sortModel α).evalQuery (cmpLT x y) ↔ x < y := by
   simp [sortModel]
 
+@[grind =]
 lemma SortModel_insertHeadquery_iff [LinearOrder α] (l : List α) (x : α) :
   (sortModel α).evalQuery (insertHead l x) = x :: l := by
   simp [sortModel]
 
-lemma SortModel_addComponents [LinearOrder α] (m₁ m₂ m₃ : SortOpsCost) :
+
+lemma SortModel_addComponents (m₁ m₂ m₃ : SortOpsCost) :
   m₁ + m₂ = m₃ ↔
     m₁.compares + m₂.compares = m₃.compares ∧
       m₁.inserts + m₂.inserts = m₃.inserts ∧
@@ -109,6 +112,21 @@ lemma SortModel_addComponents [LinearOrder α] (m₁ m₂ m₃ : SortOpsCost) :
   simp only [HAdd.hAdd]
   simp only [Int.instAdd]
   aesop
+
+@[simp]
+lemma SortModel_add_compares (m₁ m₂ : SortOpsCost) :
+  (Add.add m₁ m₂).compares = m₁.compares + m₂.compares := by
+  cases m₁; cases m₂; rfl
+
+@[simp]
+lemma SortModel_add_inserts (m₁ m₂ : SortOpsCost) :
+  (Add.add m₁ m₂).inserts = m₁.inserts + m₂.inserts := by
+  cases m₁; cases m₂; rfl
+
+@[simp]
+lemma SortModel_add_pure (m₁ m₂ : SortOpsCost) :
+  (Add.add m₁ m₂).pure = m₁.pure + m₂.pure := by
+  cases m₁; cases m₂; rfl
 
 lemma SortModel_leComponents (m₁ m₂ : SortOpsCost) :
   m₁ ≤ m₂ ↔
@@ -142,6 +160,13 @@ lemma insertOrdNaive_mem [LinearOrder α]
       · simp at hx
         assumption
 
+lemma insertOrdNaive_length [LinearOrder α] (x : α) (l : List α) :
+  (insertOrdNaive x l).length = l.length + 1 := by
+  induction l with
+  | nil =>
+      simp [insertOrdNaive]
+  | cons head tail ih =>
+      by_cases h : head < x <;> simp [insertOrdNaive, h, ih]
 
 lemma insertOrdNaive_sorted [LinearOrder α] (x : α) (l : List α) :
   l.Pairwise (· ≤ ·) → (insertOrdNaive x l).Pairwise (· ≤ ·) := by
@@ -165,7 +190,6 @@ lemma insertOrdNaive_sorted [LinearOrder α] (x : α) (l : List α) :
           · simp only [List.pairwise_cons, List.mem_cons, forall_eq_or_imp, h₂, and_true]
             grind
 
-
 def insertOrd (x : α) (l : List α) : Prog (SortOps α) (List α) := do
   match l with
   | [] => insertHead l x
@@ -177,7 +201,6 @@ def insertOrd (x : α) (l : List α) : Prog (SortOps α) (List α) := do
         insertHead res a
       else
         insertHead (a :: as) x
-
 
 lemma insertOrd_is_insertOrdNaive [LinearOrder α] :
   ∀ (x : α) (l : List α) ,
@@ -196,6 +219,55 @@ lemma insertOrd_is_insertOrdNaive [LinearOrder α] :
         exact ih
       · simp
 
+lemma insertOrd_length [LinearOrder α] (x : α) (l : List α) :
+  ((insertOrd x l).eval (sortModel α)).length = l.length + 1 := by
+  rw [insertOrd_is_insertOrdNaive]
+  simp [insertOrdNaive_length]
+
+lemma hbind_compares [LinearOrder α] :
+  (Prog.time
+      (FreeM.bind (insertOrd x tail)
+        (fun res => FreeM.liftBind (insertHead res head) FreeM.pure))
+      (sortModel α)).compares =
+    (Prog.time (insertOrd x tail) (sortModel α)).compares := by
+  have h := congrArg SortOpsCost.compares
+    (Prog.time.bind (M := sortModel α)
+      (op := insertOrd x tail)
+      (cont := fun res => FreeM.liftBind (insertHead res head) FreeM.pure))
+  simp only [HAdd.hAdd, acsSortOpsCost, pcSortOps, bind, sortModel, Bool.if_false_right,
+    Bool.and_true, PureCost.pureCost, SortModel_add_compares, time, eval, pure] at h
+  simp only [Add.add, Int.add_def, add_zero] at h
+  exact h
+
+lemma hbind_inserts [LinearOrder α] :
+  (Prog.time
+      (FreeM.bind (insertOrd x tail)
+        (fun res => FreeM.liftBind (insertHead res head) FreeM.pure))
+      (sortModel α)).inserts =
+    (Prog.time (insertOrd x tail) (sortModel α)).inserts + 1 := by
+  have h := congrArg SortOpsCost.inserts
+    (Prog.time.bind (M := sortModel α)
+      (op := insertOrd x tail)
+      (cont := fun res => FreeM.liftBind (insertHead res head) FreeM.pure))
+  simp only [HAdd.hAdd, acsSortOpsCost, pcSortOps, bind, sortModel, Bool.if_false_right,
+    Bool.and_true, PureCost.pureCost, SortModel_add_inserts, time, eval, pure] at h
+  simp only [Add.add, Int.add_def, add_zero] at h
+  exact h
+
+lemma hbind_pure [LinearOrder α] :
+  (Prog.time
+      (FreeM.bind (insertOrd x tail)
+        (fun res => FreeM.liftBind (insertHead res head) FreeM.pure))
+      (sortModel α)).pure =
+    (Prog.time (insertOrd x tail) (sortModel α)).pure := by
+  have h := congrArg SortOpsCost.pure
+    (Prog.time.bind (M := sortModel α)
+      (op := insertOrd x tail)
+      (cont := fun res => FreeM.liftBind (insertHead res head) FreeM.pure))
+  simp only [HAdd.hAdd, acsSortOpsCost, pcSortOps, bind, sortModel, Bool.if_false_right,
+    Bool.and_true, PureCost.pureCost, SortModel_add_pure, time, eval, pure] at h
+  simp only [Add.add, Int.add_def, zero_add, add_left_inj] at h
+  exact h
 
 lemma insertOrd_complexity_upper_bound [LinearOrder α] :
   ∀ (l : List α) (x : α),
@@ -211,23 +283,45 @@ lemma insertOrd_complexity_upper_bound [LinearOrder α] :
       · obtain ⟨h₁,h₂, h₃⟩ := ih
         refine ⟨?_, ?_, ?_⟩
         · clear h₂ h₃
-          conv =>
-            lhs
-            arg 1
-            arg 2
-          sorry
+          simp only [HAdd.hAdd, acsSortOpsCost, SortModel_add_compares]
+          change (Add.add 1
+            (time (FreeM.bind (insertOrd x tail) fun res =>
+              FreeM.liftBind (insertHead res head) FreeM.pure) (sortModel α)).compares ≤
+            Add.add (↑tail.length) 1)
+          rw [hbind_compares]
+          simp [Add.add]
+          linarith [h₁]
         · clear h₁ h₃
-          sorry
+          simp only [HAdd.hAdd, acsSortOpsCost, SortModel_add_inserts]
+          change (Add.add 0
+            (time (FreeM.bind (insertOrd x tail) fun res =>
+              FreeM.liftBind (insertHead res head) FreeM.pure) (sortModel α)).inserts ≤
+            Add.add (Add.add (↑tail.length) 1) 1)
+          rw [hbind_inserts]
+          simp [Add.add]
+          linarith [h₂]
         · clear h₁ h₂
-          sorry
+          simp only [HAdd.hAdd, acsSortOpsCost, SortModel_add_pure]
+          change (Add.add 0
+            (time (FreeM.bind (insertOrd x tail) fun res =>
+              FreeM.liftBind (insertHead res head) FreeM.pure) (sortModel α)).pure ≤
+            1)
+          rw [hbind_pure]
+          simpa [Add.add] using h₃
       · obtain ⟨h₁, h₂, h₃⟩ := ih
         refine ⟨?_, ?_, ?_⟩
         · clear h₂ h₃
-          sorry
+          simp [HAdd.hAdd, acsSortOpsCost, SortModel_add_compares]
+          simp [Add.add]
         · clear h₁ h₃
-          sorry
+          simp [HAdd.hAdd, acsSortOpsCost, SortModel_add_inserts]
+          simp [Add.add]
+          have h_nonneg : (0 : ℤ) ≤ (tail.length : ℤ) := by
+            exact Int.natCast_nonneg _
+          linarith
         · clear h₁ h₂
-          sorry
+          simp [HAdd.hAdd, acsSortOpsCost, SortModel_add_pure]
+          simp [Add.add]
 
 lemma insertOrd_Sorted [LinearOrder α] (l : List α) (x : α) :
   l.Pairwise (· ≤ ·) → ((insertOrd x l).eval (sortModel α)).Pairwise (· ≤ ·) := by
