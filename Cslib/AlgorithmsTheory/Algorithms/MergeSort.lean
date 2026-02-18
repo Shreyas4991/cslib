@@ -265,14 +265,13 @@ lemma mergeSortNaive_length [LinearOrder α] (xs : List α) :
           done
         · done
         · done
-        · specialize h₁ htake rfl 
+        · specialize h₁ htake rfl
           done
 
-    done
 lemma mergeSort_length [LinearOrder α] (xs : List α) :
   ((mergeSort xs).eval (sortModel α)).length = xs.length := by
   rw [mergeSort_is_mergeSortNaive]
-  apply mergeNaive_length
+  apply mergeSortNaive_length
 
 
 lemma mergeNaive_sorted_sorted [LinearOrder α] (xs ys : List α)
