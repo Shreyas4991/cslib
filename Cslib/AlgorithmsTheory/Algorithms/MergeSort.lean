@@ -470,7 +470,6 @@ theorem mergeSort_complexity [LinearOrder α] (xs : List α) :
     simpa [T, hsub1, hsub2, hsub3, hsplit, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
       using hs
 
-
 end TimeComplexity
 
 end Cslib.Algorithms
