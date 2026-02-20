@@ -18,7 +18,7 @@ inductive SortOps (α : Type) : Type → Type  where
 
 open SortOps
 
-@[simp, grind]
+
 def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
   evalQuery q :=
     match q with
@@ -33,7 +33,12 @@ def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
     | .cmpLT _ _ => 1
     | .insertHead _ _ => 1
 
-
+@[simp]
+lemma sortModel_eval_1 [LinearOrder α] (y x : α) :
+  y ≤ x → (sortModel α).evalQuery (cmpLT x y) = false := by
+  intro h
+  simp only [sortModel, Bool.if_false_right, Bool.and_true, decide_eq_false_iff_not, not_lt]
+  exact h
 /-- Merge two sorted lists using comparisons in the query monad. -/
 def mergeNaive [LinearOrder α] (x y : List α) : List α :=
   match x,y with
@@ -74,7 +79,7 @@ lemma merge_bind_pure_insert_x [LinearOrder α] (x y : α) (xs ys : List α) :
   have h := Prog.time.bind (sortModel α) (merge xs (y :: ys)) (fun rest => FreeM.pure (x :: rest))
   have h' : Prog.time (FreeM.bind (merge xs (y :: ys)) (fun rest => FreeM.pure (x :: rest)))
               (sortModel α) + 1 = (merge xs (y :: ys)).time (sortModel α) + 1 := by
-    simpa [PureCost.pureCost] using h
+      simpa using h
   exact Nat.add_right_cancel h'
 
 lemma merge_bind_pure_insert_y [LinearOrder α] (x y : α) (xs ys : List α) :
@@ -84,14 +89,14 @@ lemma merge_bind_pure_insert_y [LinearOrder α] (x y : α) (xs ys : List α) :
   have h := Prog.time.bind (sortModel α) (merge (x :: xs) ys) (fun rest => FreeM.pure (y :: rest))
   have h' : Prog.time (FreeM.bind (merge (x :: xs) ys) (fun rest => FreeM.pure (y :: rest)))
               (sortModel α) + 1 = (merge (x :: xs) ys).time (sortModel α) + 1 := by
-    simpa [PureCost.pureCost] using h
+    simpa using h
   exact Nat.add_right_cancel h'
 
 lemma merge_timeComplexity [LinearOrder α] (x y : List α) :
   (merge x y).time (sortModel α) ≤  x.length + y.length + 1:= by
   fun_induction merge
-  · simp [PureCost.pureCost]
-  · simp [PureCost.pureCost]
+  · simp
+  · simp
   · expose_names
     simp only [bind, FreeM.lift_def, pure, FreeM.liftBind_bind, FreeM.pure_bind, sortModel,
       Bool.if_false_right, Bool.and_true, Prog.time.eq_2, decide_eq_true_eq, List.length_cons]
@@ -119,31 +124,12 @@ lemma merge_timeComplexity [LinearOrder α] (x y : List α) :
 lemma merge_is_mergeNaive [LinearOrder α] (x y : List α) :
   (merge x y).eval (sortModel α) = mergeNaive x y := by
   fun_induction mergeNaive
-  · simp [merge, Id.run]
+  · simp [merge]
+  · simp [merge]
   · expose_names
-    simp [Id.run]
+    simp_all [Prog.eval,  merge, rest, sortModel]
   · expose_names
-    simp only [Prog.eval, Id.run, pure, sortModel,
-      Bool.if_false_right, Bool.and_true, merge, bind, FreeM.lift_def, FreeM.liftBind_bind,
-      FreeM.pure_bind, FreeM.liftM_liftBind, decide_eq_true_eq]
-    simp_all only [Prog.eval, pure, sortModel,
-      Bool.if_false_right, Bool.and_true, ↓reduceIte, FreeM.liftM_bind, bind,
-      FreeM.liftM_pure, List.cons.injEq, true_and, rest]
-    exact ih1
-  · simp only [Prog.eval, Id.run, pure, sortModel,
-    Bool.if_false_right, Bool.and_true, merge, bind, FreeM.lift_def, FreeM.liftBind_bind,
-    FreeM.pure_bind, FreeM.liftM_liftBind, decide_eq_true_eq]
-    rename_i rest ih1
-    simp_all only [not_lt, Prog.eval, pure, sortModel,
-      Bool.if_false_right, Bool.and_true, rest]
-    split
-    · simp_all only [FreeM.liftM_bind, bind, FreeM.liftM_pure, pure, List.cons.injEq]
-      refine ⟨?_, ?_⟩
-      · grind
-      · grind
-    · simp_all only [not_lt, FreeM.liftM_bind, bind, FreeM.liftM_pure, pure, List.cons.injEq,
-        true_and]
-      exact ih1
+    simp_all [Prog.eval, merge, rest]
 
 lemma merge_length [LinearOrder α] (x y : List α) :
   ((merge x y).eval (sortModel α)).length = x.length + y.length := by
@@ -178,7 +164,7 @@ lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
     by_cases hlt : xs.length < 2
     · nth_rewrite 1 [mergeSort]
       nth_rewrite 1 [mergeSortNaive]
-      simp [hlt, Prog.eval, Id.run]
+      simp [hlt, Prog.eval]
     · have hge : 2 ≤ xs.length := by
         exact le_of_not_gt hlt
       have hpos : 0 < xs.length := by
