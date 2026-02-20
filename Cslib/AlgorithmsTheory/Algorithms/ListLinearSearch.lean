@@ -7,6 +7,7 @@ Authors: Shreyas Srinivas
 module
 
 public import Cslib.AlgorithmsTheory.QueryModel
+public import Cslib.AlgorithmsTheory.Models.ListComparisonSearch
 public import Mathlib
 
 @[expose] public section
@@ -17,18 +18,6 @@ namespace Cslib
 namespace Algorithms
 
 open Prog
-
-inductive ListSearch (α : Type) : Type → Type  where
-  | compare (a : List α) (val : α) : ListSearch α Bool
-
-
-def ListSearch_Nat [DecidableEq α] : Model (ListSearch α) ℕ where
-  evalQuery q :=
-    match q with
-    | .compare l x => l.head? = some x
-  cost q :=
-    match q with
-    | .compare _ _ => 1
 
 open ListSearch in
 def listLinearSearch (l : List α) (x : α) : Prog (ListSearch α) Bool := do

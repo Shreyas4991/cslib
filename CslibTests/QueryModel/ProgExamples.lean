@@ -35,35 +35,6 @@ def RatArithQuery_NatCost : Model (Arith ℚ) ℕ where
     | .one => (1 : ℚ)
   cost _ := 1
 
-structure AddMulCosts where
-  addCount : ℕ
-  mulCount : ℕ
-  pure : ℕ
-
-instance : Zero (AddMulCosts) where
-  zero := ⟨0,0,0⟩
-
-instance : PureCosts (AddMulCosts) where
-  pureCost := ⟨0,0,1⟩
-
-instance : Add (AddMulCosts) where
-    add x y :=
-      let ⟨x_addcount, x_mulcount, x_pure⟩ := x
-      let ⟨y_addcount, y_mulcount, y_pure⟩ := y
-      ⟨x_addcount + y_addcount, x_mulcount + y_mulcount, x_pure + y_pure⟩
-
-def RatArithQuery_AddMulCost : Model (Arith ℚ) AddMulCosts where
-  evalQuery
-    | .add x y => x + y
-    | .mul x y => x * y
-    | .neg x =>  -x
-    | .zero => (0 : ℚ)
-    | .one => (1 : ℚ)
-  cost
-    | .add _ _ => ⟨1,0,0⟩
-    | .mul _ _ => ⟨0,1,0⟩
-    | _ => 0
-
 open Arith in
 def ex1 : Prog (Arith ℚ) ℚ := do
   let mut x : ℚ ← @zero ℚ
@@ -73,12 +44,9 @@ def ex1 : Prog (Arith ℚ) ℚ := do
   add w z
 
 
-#eval ex1.eval RatArithQuery_NatCost
-#eval ex1.time RatArithQuery_NatCost
-#eval ex1.time RatArithQuery_AddMulCost
+--#eval ex1.eval RatArithQuery_NatCost
+--#eval ex1.time RatArithQuery_NatCost
 
-
-section ArraySort
 /--
 The array version of the sort operations
 -/
@@ -126,13 +94,10 @@ def simpleExample (v : Vector ℤ n) (i k : Fin n)
   let elem ← read c i
   push c elem
 
-#eval (simpleExample #v[1,2,3,4,5] 5 2).eval VecSort_WorstCase
-#eval (simpleExample #v[1,2,3,4,5] 5 2).time VecSort_WorstCase
-#eval (simpleExample #v[1,2,3,4,5] 5 2).time VecSort_CmpSwap
+--#eval (simpleExample #v[1,2,3,4,5] 5 2).eval VecSort_WorstCase
+--#eval (simpleExample #v[1,2,3,4,5] 5 2).time VecSort_WorstCase
+--#eval (simpleExample #v[1,2,3,4,5] 5 2).time VecSort_CmpSwap
 
-end ArraySort
-
-section VectorLinearSearch
 
 inductive VecSearch (α : Type) : Type → Type  where
   | compare (a : Vector α n) (i : ℕ) (val : α) : VecSearch α Bool
@@ -146,26 +111,6 @@ def VecSearch_Nat [DecidableEq α] : Model (VecSearch α) ℕ where
     match q with
     | .compare _ _ _ => 1
 
-structure CmpCount where
-  cmp : ℕ
-  pure : ℕ
-
-instance : Add (CmpCount) where
-  add x y := ⟨x.1 + y.1, x.2 + y.2⟩
-
-instance : Zero (CmpCount) where
-  zero := ⟨0,0⟩
-
-instance : PureCosts (CmpCount) where
-  pureCost := ⟨0,1⟩
-
-def VecSearch_Cmp [DecidableEq α] : Model (VecSearch α) CmpCount where
-  evalQuery q :=
-    match q with
-    | .compare l i x =>  l[i]? == some x
-  cost q :=
-    match q with
-    | .compare _ _ _ => ⟨1,0⟩
 
 open VecSearch in
 def linearSearchAux (v : Vector α n)
@@ -183,298 +128,10 @@ open VecSearch in
 def linearSearch (v : Vector α n) (x : α) : Prog (VecSearch α) Bool:=
   linearSearchAux v x false 0
 
-#eval (linearSearch #v[12,23,31,42,52,4,6] 4).eval VecSearch_Nat
-#eval (linearSearch #v[1,2,3,4,5,6] 7).eval VecSearch_Cmp
+--#eval (linearSearch #v[12,23,31,42,52,4,6] 4).eval VecSearch_Nat
 
-#eval (linearSearch #v[1,2,3,22, 11, 12, 4,5,6] 4).time VecSearch_Nat
-#eval (linearSearch #v[1,2,3,22, 11, 12, 4,5,6] 7).time VecSearch_Cmp
+--#eval (linearSearch #v[1,2,3,22, 11, 12, 4,5,6] 4).time VecSearch_Nat
 
-
-lemma linearSearch_correct_true [DecidableEq α] (v : Vector α n)
-  (hn_pos : n > 0) :
-  ∀ x : α, x ∈ v → (linearSearch v x).eval VecSearch_Nat = true := by
-  intro x x_mem_v
-  simp only [linearSearch]
-  induction n with
-  | zero =>
-      simp_all
-  | succ n ih =>
-      simp_all only [gt_iff_lt, lt_add_iff_pos_left, add_pos_iff, zero_lt_one, or_true]
-      unfold linearSearchAux
-      split_ifs with h_cond
-      · simp_all
-      · simp [eval,liftBind]
-        unfold Prog.eval
-        simp_all only [ge_iff_le, nonpos_iff_eq_zero, Nat.add_eq_zero_iff, one_ne_zero, and_false,
-          not_false_eq_true, bind, FreeM.lift_def, pure, zero_add, FreeM.liftBind_bind,
-          FreeM.pure_bind]
-
-lemma linearSearch_correct_false [DecidableEq α] (v : Vector α n) :
-  ∀ x : α, x ∉ v → (linearSearch v x).eval VecSearch_Nat = false := by
-  intro x x_mem_v
-  simp only [linearSearch]
-  induction n with
-  | zero =>
-      simp_all [VecSearch_Nat]
-      sorry
-  | succ n ih =>
-      sorry
-
-lemma linearSearch_time_complexity [DecidableEq α] (v : Vector α n) :
-  ∀ x : α, (linearSearch v x).time VecSearch_Nat ≤ n + 1 := by
-  intro x
-  simp only [linearSearch, VecSearch_Nat]
-  induction n with
-  | zero =>
-      simp_all [linearSearchAux, time, PureCosts.pureCost]
-  | succ n ih =>
-      unfold linearSearchAux
-      split_ifs with h_cond
-      · simp_all
-      · simp [time]
-        sorry
-
--- The Monadic version
-open VecSearch in
-def linearSearchM (v : Vector α n) (x : α) : Prog (VecSearch α) Bool := do
-  let mut comp_res : Bool := false
-  for i in [0:n] do
-    comp_res ← compare v i x
-    if comp_res == true then
-      break
-    else
-      continue
-  return comp_res
-
-#eval (linearSearchM #v[12,23,31,42,52,4,6] 4).eval VecSearch_Nat
-#eval (linearSearchM #v[1,2,3,4,5,6] 7).eval VecSearch_Nat
-
-#eval (linearSearchM #v[1,2,3,22, 11, 12, 4,5,6] 4).time VecSearch_Nat
-#eval (linearSearchM #v[1,2,3,22, 11, 12, 4,5,6] 7).time VecSearch_Nat
-#eval (linearSearchM #v[1,2,3,22, 11, 12, 4,5,6] 7).time VecSearch_Cmp
-
-lemma linearSearchM_correct_true [DecidableEq α] (v : Vector α n) :
-  ∀ x : α, x ∈ v → (linearSearchM v x).eval VecSearch_Nat = true := by
-  intro x x_mem_v
-  induction h : v.toArray.toList with
-  | nil =>
-      simp_all [linearSearchM, eval]
-      have v_empty : h ▸ v = #v[] := by
-        simp
-      have x_not_mem_v : x ∉ v := by
-        subst h
-        aesop
-      tauto
-  | cons head tail ih =>
-      sorry
-
-
-lemma linearSearchM_correct_false [DecidableEq α] (v : Vector α n) :
-  ∀ x : α, x ∉ v → (linearSearchM v x).eval VecSearch_Nat = false := by
-  intro x x_mem_v
-  induction h : v.toArray.toList with
-  | nil =>
-      simp_all [linearSearchM, eval]
-  | cons head tail ih =>
-      simp_all [linearSearchM]
-      sorry
-
-lemma linearSearchM_time_complexity [DecidableEq α] (v : Vector α n) :
-  ∀ x : α, (linearSearchM v x).time VecSearch_Nat ≤ n + 1 := by
-  intro x
-  induction h : v.toArray.toList with
-  | nil =>
-      simp_all [linearSearchM, time, PureCosts.pureCost]
-  | cons head tail ih =>
-      simp_all [linearSearchM, VecSearch_Nat]
-      sorry
-
-
-end VectorLinearSearch
-
-section ListLinearSearch
-inductive ListSearch (α : Type) : Type → Type  where
-  | compare (a : List α) (val : α) : ListSearch α Bool
-
-
-def ListSearch_Nat [DecidableEq α] : Model (ListSearch α) ℕ where
-  evalQuery q :=
-    match q with
-    | .compare l x => l.head? = some x
-  cost q :=
-    match q with
-    | .compare _ _ => 1
-
-
-def ListSearch_Cmp [DecidableEq α] : Model (ListSearch α) CmpCount where
-  evalQuery q :=
-    match q with
-    | .compare l x =>  l.head? == some x
-  cost q :=
-    match q with
-    | .compare _ _ => ⟨1,0⟩
-
-open ListSearch in
-def listLinearSearch (l : List α) (x : α) : Prog (ListSearch α) Bool := do
-  match l with
-  | [] => return false
-  | l :: ls =>
-      let cmp : Bool ← compare (l :: ls) x
-      if cmp then
-        return true
-      else
-        listLinearSearch ls x
-
-lemma listLinearSearchM_correct_true [iDec : DecidableEq α] (l : List α) :
-  ∀ x : α, x ∈ l → (listLinearSearch l x).eval ListSearch_Nat = true := by
-  intro x x_mem_l
-  induction l with
-  | nil =>
-      simp_all only [List.not_mem_nil]
-  | cons head tail ih =>
-      simp_all only [List.mem_cons, listLinearSearch, bind, FreeM.lift_def, pure,
-        FreeM.liftBind_bind, FreeM.pure_bind, eval]
-      split_ifs with h
-      · simp [eval]
-      · obtain (x_head | xtail) := x_mem_l
-        · rw [x_head] at h
-          simp[ListSearch_Nat] at h
-        · specialize ih xtail
-          exact ih
-
-lemma listLinearSearchM_correct_false [DecidableEq α] (l : List α) :
-  ∀ x : α, x ∉ l → (listLinearSearch l x).eval ListSearch_Nat = false := by
-  intro x x_mem_l
-  induction l with
-  | nil =>
-      simp_all [listLinearSearch, eval]
-  | cons head tail ih =>
-      simp only [List.mem_cons, not_or] at x_mem_l
-      specialize ih x_mem_l.2
-      simp only [listLinearSearch, bind, FreeM.lift_def, pure, FreeM.liftBind_bind, FreeM.pure_bind,
-        eval]
-      split_ifs with h_eq
-      · simp [ListSearch_Nat] at h_eq
-        exfalso
-        exact x_mem_l.1 h_eq.symm
-      · exact ih
-
-
-
-lemma listLinearSearchM_time_complexity_upper_bound [DecidableEq α] (l : List α) :
-  ∀ x : α, (listLinearSearch l x).time ListSearch_Nat ≤ 1 + l.length := by
-  intro x
-  induction l with
-  | nil =>
-      simp_all [listLinearSearch, ListSearch_Nat, time, PureCosts.pureCost]
-  | cons head tail ih =>
-      simp_all [listLinearSearch, ListSearch_Nat, time]
-      split_ifs with h_head
-      · simp [time, PureCosts.pureCost]
-      · grind
-
-lemma listLinearSearchM_time_complexity_lower_bound [DecidableEq α] [inon : Nontrivial α] :
-  ∃ l : List α, ∃ x : α, (listLinearSearch l x).time ListSearch_Nat = 1 + l.length := by
-  obtain ⟨x, y, x_neq_y⟩ := inon
-  use [x,x,x,x,x,y], y
-  simp_all [time, ListSearch_Nat, listLinearSearch, PureCosts.pureCost]
-
-
-end ListLinearSearch
-
-
-section ListBinarySearch
-inductive ListBinSearch (α : Type) : Type → Type  where
-  | compare (a : List α) (i : Fin a.length) (val : α) : ListBinSearch α Ordering
-
-
-def ListBinSearch_Nat [LinearOrder α] : Model (ListBinSearch α) ℕ where
-  evalQuery q :=
-    match q with
-    | .compare l i x =>
-        if l[i]? = some x
-        then Ordering.eq
-        else
-          if l[i]? < some x
-          then Ordering.lt
-          else
-            Ordering.gt
-  cost q :=
-    match q with
-    | .compare _ _ _ => 1
-
-
-def ListBinSearch_Cmp [DecidableEq α] : Model (ListBinSearch α) CmpCount where
-  evalQuery q :=
-    match q with
-    | .compare l i x =>  l[i]? == some x
-  cost q :=
-    match q with
-    | .compare _ _ _ => ⟨1,0⟩
-
-open ListSearch in
-def listBinarySearchAux (l : List α) (x : α) (lo hi : Fin l.length) : Prog (ListBinSearch α) Bool := do
-  let mid : Fin l.length := (lo + hi) / 2
-  if compare l mid x then
-    return true
-  else
-    if comp
-lemma listBinarySearchM_correct_true [iDec : DecidableEq α] (l : List α) :
-  ∀ x : α, x ∈ l → (listLinearSearch l x).eval ListSearch_Nat = true := by
-  intro x x_mem_l
-  induction l with
-  | nil =>
-      simp_all only [List.not_mem_nil]
-  | cons head tail ih =>
-      simp_all only [List.mem_cons, listLinearSearch, bind, FreeM.lift_def, pure,
-        FreeM.liftBind_bind, FreeM.pure_bind, eval]
-      split_ifs with h
-      · simp [eval]
-      · obtain (x_head | xtail) := x_mem_l
-        · rw [x_head] at h
-          simp[ListSearch_Nat] at h
-        · specialize ih xtail
-          exact ih
-
-lemma listBinarySearchM_correct_false [DecidableEq α] (l : List α) :
-  ∀ x : α, x ∉ l → (listLinearSearch l x).eval ListSearch_Nat = false := by
-  intro x x_mem_l
-  induction l with
-  | nil =>
-      simp_all [listLinearSearch, eval]
-  | cons head tail ih =>
-      simp only [List.mem_cons, not_or] at x_mem_l
-      specialize ih x_mem_l.2
-      simp only [listLinearSearch, bind, FreeM.lift_def, pure, FreeM.liftBind_bind, FreeM.pure_bind,
-        eval]
-      split_ifs with h_eq
-      · simp [ListSearch_Nat] at h_eq
-        exfalso
-        exact x_mem_l.1 h_eq.symm
-      · exact ih
-
-
-
-lemma listBinarySearchM_time_complexity_upper_bound [DecidableEq α] (l : List α) :
-  ∀ x : α, (listLinearSearch l x).time ListSearch_Nat ≤ 1 + l.length := by
-  intro x
-  induction l with
-  | nil =>
-      simp_all [listLinearSearch, ListSearch_Nat, time, PureCosts.pureCost]
-  | cons head tail ih =>
-      simp_all [listLinearSearch, ListSearch_Nat, time]
-      split_ifs with h_head
-      · simp [time, PureCosts.pureCost]
-      · grind
-
-lemma listLinearSearchM_time_complexity_lower_bound [DecidableEq α] [inon : Nontrivial α] :
-  ∃ l : List α, ∃ x : α, (listLinearSearch l x).time ListSearch_Nat = 1 + l.length := by
-  obtain ⟨x, y, x_neq_y⟩ := inon
-  use [x,x,x,x,x,y], y
-  simp_all [time, ListSearch_Nat, listLinearSearch, PureCosts.pureCost]
-
-
-end ListBinarySearch
 
 end ProgExamples
 

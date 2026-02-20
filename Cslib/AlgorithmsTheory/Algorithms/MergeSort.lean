@@ -7,36 +7,15 @@ Authors: Tanner Duve
 module
 
 public import Cslib.AlgorithmsTheory.QueryModel
-public import Cslib.AlgorithmsTheory.Algorithms.ListOrderedInsert
+public import Cslib.AlgorithmsTheory.Models.ListComparisonSort
 
 @[expose] public section
 
 namespace Cslib.Algorithms
 
-
 open SortOps
 
 
-def sortModelNat (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
-  evalQuery q :=
-    match q with
-    | .cmpLT x y =>
-            if x < y then
-              true
-            else
-              false
-    | .insertHead l x => x :: l
-  cost q :=
-    match q with
-    | .cmpLT _ _ => 1
-    | .insertHead _ _ => 1
-
-@[simp]
-lemma sortModelNat_eval_1 [LinearOrder α] (y x : α) :
-  y ≤ x → (sortModelNat α).evalQuery (cmpLT x y) = false := by
-  intro h
-  simp only [sortModelNat, Bool.if_false_right, Bool.and_true, decide_eq_false_iff_not, not_lt]
-  exact h
 /-- Merge two sorted lists using comparisons in the query monad. -/
 def mergeNaive [LinearOrder α] (x y : List α) : List α :=
   match x,y with
@@ -56,7 +35,7 @@ lemma mergeNaive_length [LinearOrder α] (x y : List α) :
 
 
 /-- Merge two sorted lists using comparisons in the query monad. -/
-@[simp, grind]
+@[simp]
 def merge (x y : List α) : Prog (SortOps α) (List α) := do
   match x,y with
   | [], ys => return ys
