@@ -16,7 +16,10 @@ namespace Cslib.Algorithms
 open SortOps
 
 
-/-- Merge two sorted lists using comparisons in the query monad. -/
+/--
+The vanilla-lean version of `merge` that merges two lists. When the two lists
+are sorted, so is the merged list.
+-/
 def mergeNaive [LinearOrder α] (x y : List α) : List α :=
   match x,y with
   | [], ys => ys
