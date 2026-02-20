@@ -1,10 +1,10 @@
 module  -- shake: keep-all
 
+public import Cslib.AlgorithmsTheory.Algorithms.ListOrderedInsert
+public import Cslib.AlgorithmsTheory.Algorithms.ListInsertionSort
+public import Cslib.AlgorithmsTheory.Algorithms.ListLinearSearch
 public import Cslib.AlgorithmsTheory.Algorithms.MergeSort
-public import Cslib.AlgorithmsTheory.Models.ParametricWordRAM
 public import Cslib.AlgorithmsTheory.QueryModel
-public import Cslib.AlgorithmsTheory.Lean.MergeSort.MergeSort
-public import Cslib.AlgorithmsTheory.Lean.TimeM
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 public import Cslib.Computability.Automata.DA.Basic
