@@ -55,6 +55,7 @@ lemma listLinearSearchM_correct_true [iDec : DecidableEq α] (l : List α) :
           simp [ListSearch_Nat, List.head?_cons, decide_true] at h
         · specialize ih x_tail
           simp_all
+
 lemma listLinearSearchM_correct_false [DecidableEq α] (l : List α) :
   ∀ x : α, x ∉ l → (listLinearSearch l x).eval ListSearch_Nat = false := by
   intro x x_mem_l
@@ -71,8 +72,6 @@ lemma listLinearSearchM_correct_false [DecidableEq α] (l : List α) :
         exfalso
         exact x_mem_l.1 h_eq.symm
       · exact ih
-
-
 
 lemma listLinearSearchM_time_complexity_upper_bound [DecidableEq α] (l : List α) :
   ∀ x : α, (listLinearSearch l x).time ListSearch_Nat ≤ 1 + l.length := by
@@ -92,6 +91,6 @@ lemma listLinearSearchM_time_complexity_lower_bound [DecidableEq α] [inon : Non
   use [x,x,x,x,x,y], y
   simp_all [ListSearch_Nat, listLinearSearch]
 
-
 end Algorithms
+
 end Cslib
