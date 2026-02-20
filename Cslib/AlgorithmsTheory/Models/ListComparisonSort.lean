@@ -160,16 +160,14 @@ section NatModel
 A model of `SortOps` that uses `ℕ` as the type for the cost of operations.
 -/
 def sortModelNat (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
-  evalQuery q :=
-    match q with
+  evalQuery
     | .cmpLT x y =>
             if x < y then
               true
             else
               false
     | .insertHead l x => x :: l
-  cost q :=
-    match q with
+  cost
     | .cmpLT _ _ => 1
     | .insertHead _ _ => 1
 

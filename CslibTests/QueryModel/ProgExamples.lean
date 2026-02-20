@@ -43,10 +43,6 @@ def ex1 : Prog (Arith ℚ) ℚ := do
   let w ← @neg ℚ (←(add z y))
   add w z
 
-
---#eval ex1.eval RatArithQuery_NatCost
---#eval ex1.time RatArithQuery_NatCost
-
 /--
 The array version of the sort operations
 -/
@@ -64,7 +60,6 @@ def VecSort_WorstCase [DecidableEq α] : Model (VecSortOps α) ℕ where
     | .read l i => l[i]
     | .swap l i j => l.swap i j
     | .push a elem => a.push elem
-
   cost
     | .write l i x => 1
     | .read l i =>  1
@@ -79,12 +74,10 @@ def VecSort_CmpSwap [DecidableEq α] : Model (VecSortOps α) ℕ where
     | .read l i => l[i]
     | .swap l i j => l.swap i j
     | .push a elem => a.push elem
-
   cost
     | .cmp l i j => 1
     | .swap l i j => 1
     | _ => 0
-
 
 open VecSortOps in
 def simpleExample (v : Vector ℤ n) (i k : Fin n)
@@ -94,14 +87,8 @@ def simpleExample (v : Vector ℤ n) (i k : Fin n)
   let elem ← read c i
   push c elem
 
---#eval (simpleExample #v[1,2,3,4,5] 5 2).eval VecSort_WorstCase
---#eval (simpleExample #v[1,2,3,4,5] 5 2).time VecSort_WorstCase
---#eval (simpleExample #v[1,2,3,4,5] 5 2).time VecSort_CmpSwap
-
-
 inductive VecSearch (α : Type) : Type → Type  where
   | compare (a : Vector α n) (i : ℕ) (val : α) : VecSearch α Bool
-
 
 def VecSearch_Nat [DecidableEq α] : Model (VecSearch α) ℕ where
   evalQuery q :=
@@ -110,7 +97,6 @@ def VecSearch_Nat [DecidableEq α] : Model (VecSearch α) ℕ where
   cost q :=
     match q with
     | .compare _ _ _ => 1
-
 
 open VecSearch in
 def linearSearchAux (v : Vector α n)
@@ -127,11 +113,6 @@ def linearSearchAux (v : Vector α n)
 open VecSearch in
 def linearSearch (v : Vector α n) (x : α) : Prog (VecSearch α) Bool:=
   linearSearchAux v x false 0
-
---#eval (linearSearch #v[12,23,31,42,52,4,6] 4).eval VecSearch_Nat
-
---#eval (linearSearch #v[1,2,3,22, 11, 12, 4,5,6] 4).time VecSearch_Nat
-
 
 end ProgExamples
 

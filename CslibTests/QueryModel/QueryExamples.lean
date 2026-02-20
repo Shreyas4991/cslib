@@ -17,11 +17,16 @@ namespace Algorithms
 
 section Examples
 
+/--
+ListOps provides an example of list query type equipped with a `find` query.
+The complexity of this query depends on the search algorithm used. This means
+we can define two separate models for modelling situations where linear search
+or binary search is used.
+-/
 inductive ListOps (α : Type) : Type → Type  where
   | get (l : List α) (i : Fin l.length) : ListOps α α
   | find (l : List α) (elem : α) : ListOps α ℕ
   | write (l : List α) (i : Fin l.length) (x : α) : ListOps α (List α)
-
 
 def List_LinSearch_WorstCase [DecidableEq α] : Model (ListOps α) ℕ where
   evalQuery
@@ -32,8 +37,6 @@ def List_LinSearch_WorstCase [DecidableEq α] : Model (ListOps α) ℕ where
     | .write l i x => l.length
     | .find l elem =>  l.length
     | .get l i => l.length
-
-
 
 def List_BinSearch_WorstCase [BEq α] : Model (ListOps α) ℕ where
   evalQuery
