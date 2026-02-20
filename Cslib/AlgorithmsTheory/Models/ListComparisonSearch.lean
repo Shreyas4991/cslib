@@ -18,10 +18,18 @@ namespace Algorithms
 
 open Prog
 
+/--
+A query type for searching elements in list. It supports exactly one query
+`compare l val` which returns `true` if the head of the list `l` is equal to `val`
+and returns `false` otherwise.
+-/
 inductive ListSearch (α : Type) : Type → Type  where
   | compare (a : List α) (val : α) : ListSearch α Bool
 
 
+/--
+A model of the `ListSearch` query type that assigns costs to the queries in `ℕ`
+-/
 def ListSearch_Nat [DecidableEq α] : Model (ListSearch α) ℕ where
   evalQuery q :=
     match q with

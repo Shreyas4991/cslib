@@ -47,21 +47,40 @@ query model, free monad, time complexity, Prog
 
 namespace Cslib.Algorithms
 
+/--
+A model type for a query type `QType` and cost type `Cost`. It consists of
+two fields, which respectively define the evaluation and cost of a query.
+-/
 structure Model (QType : Type u → Type u) (Cost : Type)
   [AddCommMonoid Cost] where
+  /-- Evaluates a query `q : Q ι` to return a result of type `ι` -/
   evalQuery : QType ι → ι
+  /-- Counts the operational cost of a query `q : Q ι` to return a result of type `Cost`.
+  The cost could represent any desired complexity measure,
+  including but not limited to time complexity -/
   cost : QType ι → Cost
 
+/--
+A program is defined as a Free Monad over a Query type `Q` which operates on a base type `α`
+which can determine the input and output types of a query.
+-/
 abbrev Prog Q α := FreeM Q α
 
 instance {Q α} : Coe (Q α) (FreeM Q α) where
   coe := FreeM.lift
 
+/--
+The evaluation function of a program `P : Prog Q α` given a model `M : Model Q α` of `Q`
+-/
 @[simp, grind]
 def Prog.eval [AddCommMonoid Cost]
   (P : Prog Q α) (M : Model Q Cost) : α :=
   Id.run <| P.liftM fun x => pure (M.evalQuery x)
 
+/--
+The cost function of a program `P : Prog Q α` given a model `M : Model Q α` of `Q`.
+The most common use case of this function is to compute time-complexity, hence the name.
+-/
 @[simp, grind]
 def Prog.time [AddCommMonoid Cost]
   (P : Prog Q α) (M : Model Q Cost) : Cost :=
@@ -72,18 +91,18 @@ def Prog.time [AddCommMonoid Cost]
       let qval := M.evalQuery op
       t₁ + (time (cont qval) M)
 
-@[simp, grind =]
+@[grind =]
 lemma Prog.time.bind_pure [AddCommMonoid Cost] (M : Model Q Cost) :
   Prog.time (op >>= FreeM.pure) M = (Prog.time op M) := by
   simp only [bind, FreeM.bind_pure]
 
-@[simp, grind =]
+@[grind =]
 lemma Prog.time.pure_bind
   [AddCommMonoid Cost] (M : Model Q Cost) :
   Prog.time (FreeM.pure x >>= m) M = (m x).time M := by
   rfl
 
-@[simp, grind =]
+@[grind =]
 lemma Prog.time.bind [AddCommMonoid Cost] (M : Model Q Cost)
   (op : Prog Q ι) (cont : ι → Prog Q α) :
   Prog.time (op >>= cont) M =
@@ -106,9 +125,18 @@ lemma Prog.time.liftBind [AddCommMonoid Cost] (M : Model Q Cost)
 
 section Reduction
 
+/--
+A reduction structure from query type `Q₁` to query type `Q₂`.
+-/
 structure Reduction (Q₁ Q₂ : Type u → Type u) where
+  /-- `reduce (q : Q₁ α)` is a program `P : Prog Q₂ α` that is intended to
+  implement `q` in the query type `Q₂` -/
   reduce : Q₁ α → Prog Q₂ α
 
+/--
+`Prog.reduceProg` takes a reduction structure from a query `Q₁` to `Q₂` and extends its
+`reduce` function to programs on the query type `Q₁`
+-/
 def Prog.reduceProg (P : Prog Q₁ α) (red : Reduction Q₁ Q₂) : Prog Q₂ α :=
     P.liftM red.reduce
 

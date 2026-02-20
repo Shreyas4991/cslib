@@ -19,6 +19,10 @@ open Prog
 
 open SortOps
 
+/--
+A purely lean version of `insertOrd`, which is shown to be extensionally equal to
+`insertOrd` when evaluated in the `SortOps` query model.
+-/
 def insertOrdNaive (x : α) (l : List α) [LinearOrder α] :=
   match l with
   | [] => [x]
@@ -72,6 +76,10 @@ lemma insertOrdNaive_sorted [LinearOrder α] (x : α) (l : List α) :
           · simp only [List.pairwise_cons, List.mem_cons, forall_eq_or_imp, h₂, and_true]
             grind
 
+/--
+Performs ordered insertion of `x` into a list `l` in the `SortOps` query model.
+If `l` is sorted, then `x` is inserted into `l` such that the resultant list is also sorted.
+-/
 def insertOrd (x : α) (l : List α) : Prog (SortOps α) (List α) := do
   match l with
   | [] => insertHead l x

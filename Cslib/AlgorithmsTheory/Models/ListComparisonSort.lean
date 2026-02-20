@@ -15,25 +15,33 @@ namespace Cslib
 namespace Algorithms
 
 open Prog
-/-- The Model for comparison sorting natural-number registers.
+/--
+A model for comparison sorting on lists.
 -/
 inductive SortOps (α : Type) : Type → Type  where
+  /--`cmpLt x y` is intended to return `true` if `x < y` and `false` otherwise.
+  The specific order relation depends on the model provided for this type-/
   | cmpLT (x : α) (y : α): SortOps α Bool
+  /--`insertHead l x` is intended to return `x :: l`-/
   | insertHead (l : List α) (x : α) : SortOps α (List α)
 
 open SortOps
 
 section SortOpsCostModel
 
+/--
+A cost type for counting the operations of `SortOps` with separate fields for
+counting calls to `cmpLT` and `insertHead`
+-/
 @[ext, grind]
 structure SortOpsCost where
+  /-- `compares` counts the number of calls to `cmpLT` -/
   compares : ℕ
+  /-- `inserts` counts the number of calls to `insertHead` -/
   inserts : ℕ
-
 
 @[simp, grind]
 instance zeroSortOps : Zero SortOpsCost := ⟨0,0⟩
-
 
 @[simp, grind]
 instance partialOrderSortOps : PartialOrder SortOpsCost where
@@ -53,9 +61,11 @@ instance partialOrderSortOps : PartialOrder SortOpsCost where
     refine ⟨?_, ?_⟩
     all_goals solve_by_elim[Nat.le_antisymm]
 
+/-- Component-wise addition operation on `SortOpsCost` -/
 def add : SortOpsCost → SortOpsCost → SortOpsCost
   | ⟨c₁, i₁⟩, ⟨c₂, i₂⟩ => ⟨c₁ + c₂, i₁ + i₂⟩
 
+/-- Component-wise scalar (natural number) multiplication operation on `SortOpsCost` -/
 def nsmul : ℕ → SortOpsCost → SortOpsCost
   | n, ⟨c, i⟩ => ⟨n • c, n • i⟩
 
@@ -91,6 +101,9 @@ instance acsSortOpsCost : AddCommMonoid SortOpsCost where
     rfl
 
 
+/--
+A model of `SortOps` that uses `SortOpsCost` as the cost type for operations.
+-/
 def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) SortOpsCost where
   evalQuery q :=
     match q with
@@ -143,6 +156,9 @@ end SortOpsCostModel
 
 section NatModel
 
+/--
+A model of `SortOps` that uses `ℕ` as the type for the cost of operations.
+-/
 def sortModelNat (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
   evalQuery q :=
     match q with

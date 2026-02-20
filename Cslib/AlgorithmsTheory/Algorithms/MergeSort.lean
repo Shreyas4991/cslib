@@ -115,6 +115,10 @@ lemma merge_length [LinearOrder α] (x y : List α) :
   rw [merge_is_mergeNaive]
   apply mergeNaive_length
 
+/--
+The `mergeSort` algorithm in the `SortOps` query model. It sorts the input list
+according to the mergeSort algorithm.
+-/
 def mergeSort (xs : List α) : Prog (SortOps α) (List α) :=  do
   if xs.length < 2 then return xs
   else
@@ -125,6 +129,9 @@ def mergeSort (xs : List α) : Prog (SortOps α) (List α) :=  do
     let sortedRight ← mergeSort right
     merge sortedLeft sortedRight
 
+/--
+The vanilla-lean version of `mergeSortNaive` that is extensionally equal to `mergeSort`
+-/
 def mergeSortNaive [LinearOrder α] (xs : List α) : List α :=
   if xs.length < 2 then xs
   else

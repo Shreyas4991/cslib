@@ -17,6 +17,9 @@ namespace Algorithms
 
 open Prog
 
+/--
+The insertionSort algorithms on lists with the `SortOps` query
+-/
 def insertionSort (l : List α) : Prog (SortOps α) (List α) :=
   match l with
   | [] => return []
