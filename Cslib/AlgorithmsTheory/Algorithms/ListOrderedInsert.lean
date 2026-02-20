@@ -35,7 +35,7 @@ structure SortOpsCost where
 instance zeroSortOps : Zero SortOpsCost := ⟨0,0⟩
 
 
-@[simp]
+@[simp, grind]
 instance partialOrderSortOps : PartialOrder SortOpsCost where
   le | ⟨c₁, i₁⟩, ⟨c₂, i₂⟩ => c₁ ≤ c₂ ∧ i₁ ≤ i₂
   le_refl := by
@@ -65,19 +65,20 @@ instance acsSortOpsCost : AddCommMonoid SortOpsCost where
   add_assoc := by
     intro a b c
     simp only [HAdd.hAdd]
-    simp [add, instAddNat, Nat.add_assoc]
+    simp [add, Nat.add_assoc]
   add_comm := by
     intro a b
     simp only [HAdd.hAdd]
-    simp [add, instAddNat, Nat.add_comm]
+    simp [add, Nat.add_comm]
   zero_add := by
     intro ⟨c, i⟩
-    simp only [HAdd.hAdd, add]
-    simp [instAddNat]
+    simp only [HAdd.hAdd, Add.add, add]
+    simp
   add_zero := by
     intro ⟨c, i⟩
     simp only [HAdd.hAdd, add]
-    simp [instAddNat]
+    simp [Add.add]
+
   nsmul := nsmul
   nsmul_zero := by
     intro x
@@ -119,7 +120,7 @@ lemma SortModel_addComponents (m₁ m₂ m₃ : SortOpsCost) :
   m₁ + m₂ = m₃ ↔
     m₁.compares + m₂.compares = m₃.compares ∧
       m₁.inserts + m₂.inserts = m₃.inserts := by
-  simp only [HAdd.hAdd, instAddNat]
+  simp only [HAdd.hAdd]
   aesop
 
 @[simp]
@@ -238,7 +239,7 @@ lemma bind_compares {α} (x tail head) [LinearOrder α] :
     (Prog.time.bind (M := sortModel α)
       (op := insertOrd x tail)
       (cont := fun res => FreeM.liftBind (insertHead res head) FreeM.pure))
-  simp only [acsSortOpsCost, zeroSortOps, FreeM.bind_eq_bind, sortModel, Bool.if_false_right,
+  simp only [FreeM.bind_eq_bind, sortModel, Bool.if_false_right,
     Bool.and_true, HAdd.hAdd, time, eval, SortModel_add_compares] at h
   simp only [Add.add] at h
   simp_all only [sortModel, Bool.if_false_right, Bool.and_true]
@@ -255,26 +256,31 @@ lemma bind_inserts {α} (x tail head) [LinearOrder α] :
     (Prog.time.bind (M := sortModel α)
       (op := insertOrd x tail)
       (cont := fun res => FreeM.liftBind (insertHead res head) FreeM.pure))
-  simp only [HAdd.hAdd, acsSortOpsCost, bind, sortModel, Bool.if_false_right,
+  simp only [HAdd.hAdd, bind, sortModel, Bool.if_false_right,
     Bool.and_true, SortModel_add_inserts, time, eval] at h
   simp only [Add.add] at h
   exact h
 
+@[simp]
 lemma cost_cmpLT_compares [LinearOrder α] : ((sortModel α).2 (cmpLT head x)).compares = 1 := by
   simp [sortModel]
 
+@[simp]
 lemma cost_cmpLT_inserts [LinearOrder α]
   : ((sortModel α).2 (cmpLT head x)).inserts = 0 := by
   simp [sortModel]
 
+@[simp]
 lemma cost_insertHead_compares [LinearOrder α]
   : ((sortModel α).2 (insertHead x l)).compares = 0 := by
   simp [sortModel]
 
+@[simp]
 lemma cost_insertHead_inserts [LinearOrder α]
   : ((sortModel α).2 (insertHead x l)).inserts = 1 := by
   simp [sortModel]
-lemma insertOrd_complexity_upper_bound [LinearOrder α] :
+
+theorem insertOrd_complexity_upper_bound [LinearOrder α] :
   ∀ (l : List α) (x : α),
     (insertOrd x l).time (sortModel α) ≤ ⟨l.length, l.length + 1⟩ := by
   intro l x
@@ -282,8 +288,8 @@ lemma insertOrd_complexity_upper_bound [LinearOrder α] :
   | nil =>
       simp [insertOrd, sortModel]
   | cons head tail ih =>
-      simp_all only [partialOrderSortOps, not_and, not_le, insertOrd, FreeM.lift_def,
-        FreeM.bind_eq_bind, FreeM.liftBind_bind, FreeM.pure_bind, time.eq_2, List.length_cons]
+      simp_all only [insertOrd, FreeM.lift_def, FreeM.bind_eq_bind, FreeM.liftBind_bind,
+        FreeM.pure_bind, time.eq_2, List.length_cons]
       obtain ⟨ih_compares, ih_inserts⟩ := ih
       split_ifs with h_head
       · simp only [HAdd.hAdd, Add.add, add, Nat.add]
@@ -295,8 +301,11 @@ lemma insertOrd_complexity_upper_bound [LinearOrder α] :
         · clear ih_compares
           rw [cost_cmpLT_inserts, bind_inserts]
           grind
-      · simp only [HAdd.hAdd, Add.add, add, Nat.add, sortModel]
-        grind
+      · simp only [HAdd.hAdd, sortModel, Bool.if_false_right, Bool.and_true, time]
+        simp only [Add.add, add, add_zero, zero_add, Nat.add_eq]
+        refine ⟨?_, ?_⟩
+        · grind
+        · grind
 
 
 

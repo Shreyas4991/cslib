@@ -40,7 +40,7 @@ lemma insertionSort_time_compares [LinearOrder α] (head : α) (tail : List α) 
       ((insertOrd head ((insertionSort tail).eval (sortModel α))).time (sortModel α)).compares := by
   have h := congrArg SortOpsCost.compares
     (Prog.time.bind (M := sortModel α) (insertionSort tail) (fun rest => insertOrd head rest))
-  simp only [HAdd.hAdd, acsSortOpsCost, Add.add] at h
+  simp only [HAdd.hAdd, Add.add] at h
   simpa [insertionSort] using h
 
 lemma insertionSort_time_inserts [LinearOrder α] (head : α) (tail : List α) :
@@ -49,7 +49,7 @@ lemma insertionSort_time_inserts [LinearOrder α] (head : α) (tail : List α) :
       ((insertOrd head ((insertionSort tail).eval (sortModel α))).time (sortModel α)).inserts := by
   have h := congrArg SortOpsCost.inserts
     (Prog.time.bind (M := sortModel α) (insertionSort tail) (fun rest => insertOrd head rest))
-  simp only [HAdd.hAdd, acsSortOpsCost, Add.add] at h
+  simp only [HAdd.hAdd, Add.add] at h
   simpa [insertionSort] using h
 
 lemma insertionSort_length [LinearOrder α] (l : List α) :
@@ -67,13 +67,12 @@ theorem insertionSort_complexity [LinearOrder α] (l : List α) :
     ≤ ⟨l.length * (l.length + 1), (l.length + 1) * (l.length + 2)⟩ := by
   induction l with
   | nil =>
-      simp only [partialOrderSortOps, not_and, not_le, insertionSort, FreeM.pure_eq_pure, sortModel,
-        Bool.if_false_right, Bool.and_true, time.eq_1, List.length_nil, zero_add, mul_one, one_mul,
-        nonpos_iff_eq_zero]
+      simp only [insertionSort, FreeM.pure_eq_pure, sortModel,
+        Bool.if_false_right, Bool.and_true, time.eq_1, List.length_nil, zero_add, mul_one, one_mul]
       tauto
   | cons head tail ih =>
       have h := insertOrd_complexity_upper_bound ((insertionSort tail).eval (sortModel α)) head
-      simp_all only [partialOrderSortOps, not_and, not_le, List.length_cons, insertionSort_length]
+      simp_all only [List.length_cons, insertionSort_length]
       obtain ⟨ih₁,ih₂⟩ := ih
       obtain ⟨h₁,h₂⟩ := h
       refine ⟨?_, ?_⟩
