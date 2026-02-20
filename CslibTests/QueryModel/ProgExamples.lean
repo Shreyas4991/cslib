@@ -26,8 +26,7 @@ inductive Arith (α : Type) : Type → Type where
   | one : Arith α α
 
 def RatArithQuery_NatCost : Model (Arith ℚ) ℕ where
-  evalQuery q :=
-    match q with
+  evalQuery
     | .add x y => x + y
     | .mul x y => x * y
     | .neg x =>  -x
@@ -91,11 +90,9 @@ inductive VecSearch (α : Type) : Type → Type  where
   | compare (a : Vector α n) (i : ℕ) (val : α) : VecSearch α Bool
 
 def VecSearch_Nat [DecidableEq α] : Model (VecSearch α) ℕ where
-  evalQuery q :=
-    match q with
+  evalQuery
     | .compare l i x =>  l[i]? == some x
-  cost q :=
-    match q with
+  cost
     | .compare _ _ _ => 1
 
 open VecSearch in
