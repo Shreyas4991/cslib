@@ -98,14 +98,14 @@ def VecSearch_Nat [DecidableEq α] : Model (VecSearch α) ℕ where
 open VecSearch in
 def linearSearchAux (v : Vector α n)
   (x : α) (acc : Bool) (index : ℕ) : Prog (VecSearch α) Bool := do
-  if h : index ≥ n then
-    return acc
-  else
-    let cmp_res : Bool ← compare v index x
-    if cmp_res then
-      return true
+    if h : index ≥ n then
+      return acc
     else
-      linearSearchAux v x false (index + 1)
+      let cmp_res : Bool ← compare v index x
+      if cmp_res then
+        return true
+      else
+        linearSearchAux v x false (index + 1)
 
 open VecSearch in
 def linearSearch (v : Vector α n) (x : α) : Prog (VecSearch α) Bool:=
