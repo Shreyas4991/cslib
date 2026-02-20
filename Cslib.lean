@@ -38,6 +38,7 @@ public import Cslib.Computability.URM.Defs
 public import Cslib.Computability.URM.Execution
 public import Cslib.Computability.URM.StandardForm
 public import Cslib.Computability.URM.StraightLine
+public import Cslib.Foundations.Combinatorics.InfiniteGraphRamsey
 public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
 public import Cslib.Foundations.Control.Monad.Free.Fold
@@ -75,6 +76,7 @@ public import Cslib.Languages.CombinatoryLogic.Basic
 public import Cslib.Languages.CombinatoryLogic.Confluence
 public import Cslib.Languages.CombinatoryLogic.Defs
 public import Cslib.Languages.CombinatoryLogic.Evaluation
+public import Cslib.Languages.CombinatoryLogic.List
 public import Cslib.Languages.CombinatoryLogic.Recursion
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Basic
