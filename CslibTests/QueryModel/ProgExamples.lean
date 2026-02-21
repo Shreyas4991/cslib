@@ -35,11 +35,11 @@ def RatArithQuery_NatCost : Model (Arith ℚ) ℕ where
   cost _ := 1
 
 open Arith in
-def ex1 : Prog (Arith ℚ) ℚ := do
-  let mut x : ℚ ← @zero ℚ
-  let mut y ← @one ℚ
-  let z ← (add (x + y + y) y)
-  let w ← @neg ℚ (←(add z y))
+def ex1 : Prog (Arith α) α := do
+  let mut x : α ← @zero α
+  let mut y ← @one α
+  let z ← (add x y)
+  let w ← @neg α (←(add z y))
   add w z
 
 /--
