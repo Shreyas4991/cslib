@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Simon Hudon, Edward Ayers
+Authors: Simon Hudon, Edward Ayers, Shreyas Srinivas
 -/
 module
 
@@ -27,8 +27,10 @@ Use `AddWriterT.run` to obtain the final value of this output. -/
 def AddWriterT (ω : Type u) (M : Type u → Type v) (α : Type u) : Type v :=
   M (α × ω)
 
+/-- `AddWriter` is simply `AddWriterT` applied to the `Id` monad -/
 abbrev AddWriter ω := AddWriterT ω Id
 
+/-- Standard MonadWriter API for AddWriter -/
 class MonadAddWriter (ω : outParam (Type u)) (M : Type u → Type v) where
   /-- Emit an output `w`. -/
   tell (w : ω) : M PUnit
@@ -53,13 +55,19 @@ instance [Monad M] [MonadWriter ω M] : MonadWriter ω (StateT σ M) where
 
 namespace AddWriterT
 
+/-- Standard conversion from `M (α × ω)` to `AddWriterT ω M α` -/
 @[inline]
 protected def mk {ω : Type u} (cmd : M (α × ω)) : AddWriterT ω M α := cmd
+
+/-- Run a writer monad `AddWriterT ω M α` -/
 @[inline]
 protected def run {ω : Type u} (cmd : AddWriterT ω M α) : M (α × ω) := cmd
+
+/-- Run a writer monad `AddWriterT ω M α` -/
 @[inline]
 protected def runThe (ω : Type u) (cmd : AddWriterT ω M α) : M (α × ω) := cmd
 
+/-- Extensional equality of AddWriterT Monad -/
 @[ext]
 protected theorem ext {ω : Type u} (x x' : AddWriterT ω M α) (h : x.run = x'.run) : x = x' := h
 
@@ -115,6 +123,10 @@ instance [MonadLiftT M (AddWriterT ω M)] : MonadControl M (AddWriterT ω M) whe
 instance : MonadFunctor M (AddWriterT ω M) where
   monadMap := fun k (w : M _) ↦ AddWriterT.mk <| k w
 
+/--
+Adapt functorially maps `f` to the writer log of an `AddWriterT` to produce another
+with the modified log.
+-/
 @[inline] protected def adapt {ω' : Type u} {α : Type u} (f : ω → ω') :
     AddWriterT ω M α → AddWriterT ω' M α :=
   fun cmd ↦ AddWriterT.mk <| Prod.map id f <$> cmd
@@ -128,7 +140,8 @@ but does not use lenses (why would it), and is derived automatically for any tra
 implementing `MonadFunctor`.
 -/
 class MonadAddWriterAdapter (ω : outParam (Type u)) (m : Type u → Type v) where
-  adaptWriter {α : Type u} : (ω → ω) → m α → m α
+  /-- The addaptWriter function -/
+  adaptAddWriter {α : Type u} : (ω → ω) → m α → m α
 
 export MonadWriterAdapter (adaptWriter)
 
