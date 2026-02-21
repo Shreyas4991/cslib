@@ -19,11 +19,11 @@ open Prog
 A model for comparison sorting on lists.
 -/
 inductive SortOps (α : Type) : Type → Type  where
-  /--`cmpLt x y` is intended to return `true` if `x < y` and `false` otherwise.
+  /--`cmpLE x y` is intended to return `true` if `x ≤ y` and `false` otherwise.
   The specific order relation depends on the model provided for this type-/
-  | cmpLT (x : α) (y : α): SortOps α Bool
+  | cmpLE (x : α) (y : α): SortOps α Bool
   /--`insertHead l x` is intended to return `x :: l`-/
-  | insertHead (l : List α) (x : α) : SortOps α (List α)
+  | insertHead (x : α) (l : List α) : SortOps α (List α)
 
 open SortOps
 
@@ -107,25 +107,25 @@ A model of `SortOps` that uses `SortOpsCost` as the cost type for operations.
 def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) SortOpsCost where
   evalQuery q :=
     match q with
-    | .cmpLT x y =>
-            if x < y then
+    | .cmpLE x y =>
+            if x ≤ y then
               true
             else
               false
-    | .insertHead l x => x :: l
+    | .insertHead x l => x :: l
   cost q :=
     match q with
-    | .cmpLT _ _ => ⟨1,0⟩
+    | .cmpLE _ _ => ⟨1,0⟩
     | .insertHead _ _ => ⟨0,1⟩
 
 @[grind =]
 lemma SortModel_cmpquery_iff [LinearOrder α] (x y : α) :
-  (sortModel α).evalQuery (cmpLT x y) ↔ x < y := by
+  (sortModel α).evalQuery (cmpLE x y) ↔ x ≤ y := by
   simp [sortModel]
 
 @[grind =]
 lemma SortModel_insertHeadquery_iff [LinearOrder α] (l : List α) (x : α) :
-  (sortModel α).evalQuery (insertHead l x) = x :: l := by
+  (sortModel α).evalQuery (insertHead x l) = x :: l := by
   simp [sortModel]
 
 
@@ -161,21 +161,21 @@ A model of `SortOps` that uses `ℕ` as the type for the cost of operations.
 -/
 def sortModelNat (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
   evalQuery
-    | .cmpLT x y =>
-            if x < y then
+    | .cmpLE x y =>
+            if x ≤ y then
               true
             else
               false
-    | .insertHead l x => x :: l
+    | .insertHead x l => x :: l
   cost
-    | .cmpLT _ _ => 1
+    | .cmpLE _ _ => 1
     | .insertHead _ _ => 1
 
 @[simp]
 lemma sortModelNat_eval_1 [LinearOrder α] (y x : α) :
-  y ≤ x → (sortModelNat α).evalQuery (cmpLT x y) = false := by
+  y < x → (sortModelNat α).evalQuery (cmpLE x y) = false := by
   intro h
-  simp only [sortModelNat, Bool.if_false_right, Bool.and_true, decide_eq_false_iff_not, not_lt]
+  simp only [sortModelNat, Bool.if_false_right, Bool.and_true, decide_eq_false_iff_not, not_le]
   exact h
 
 end NatModel
