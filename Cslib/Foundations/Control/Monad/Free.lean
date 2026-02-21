@@ -223,6 +223,9 @@ lemma liftM_bind [LawfulMonad m]
     rw [FreeM.bind, liftM_liftBind, liftM_liftBind, bind_assoc]
     simp_rw [ih]
 
+instance {Q α} : Coe (Q α) (FreeM Q α) where
+  coe := FreeM.lift
+
 /--
 A predicate stating that `interp : FreeM F α → m α` is an interpreter for the effect
 handler `handler : ∀ {α}, F α → m α`.

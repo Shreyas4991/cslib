@@ -66,9 +66,6 @@ which can determine the input and output types of a query.
 -/
 abbrev Prog Q α := FreeM Q α
 
-instance {Q α} : Coe (Q α) (FreeM Q α) where
-  coe := FreeM.lift
-
 /--
 The evaluation function of a program `P : Prog Q α` given a model `M : Model Q α` of `Q`
 -/
