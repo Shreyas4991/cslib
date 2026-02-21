@@ -25,7 +25,7 @@ def mergeNaive [LinearOrder α] (x y : List α) : List α :=
   | [], ys => ys
   | xs, [] => xs
   | x :: xs', y :: ys' =>
-      if x < y then
+      if x ≤ y then
         let rest := mergeNaive xs' (y :: ys')
         x :: rest
       else
@@ -44,7 +44,7 @@ def merge (x y : List α) : Prog (SortOps α) (List α) := do
   | [], ys => return ys
   | xs, [] => return xs
   | x :: xs', y :: ys' => do
-      let cmp : Bool ← cmpLT x y
+      let cmp : Bool ← cmpLE x y
       if cmp then
         let rest ← merge xs' (y :: ys')
         return (x :: rest)
@@ -303,7 +303,7 @@ lemma mergeNaive_sorted_sorted [LinearOrder α] (xs ys : List α)
           simp_all [mergeNaive]
       | cons yhead ytail y_ih =>
           simp only [mergeNaive]
-          by_cases hxy : xhead < yhead
+          by_cases hxy : xhead ≤ yhead
           · simp only [hxy, ↓reduceIte, List.pairwise_cons]
             refine ⟨?_, ?_⟩
             · intro a a_mem
@@ -324,7 +324,7 @@ lemma mergeNaive_sorted_sorted [LinearOrder α] (xs ys : List α)
             refine ⟨?_, ?_⟩
             · intro a a_mem
               apply mergeNaive_mem at a_mem
-              simp_all only [List.pairwise_cons, not_lt, List.mem_cons, forall_const]
+              simp_all only [List.pairwise_cons, not_le, List.mem_cons, forall_const]
               obtain ⟨left, right⟩ := hxs_mono
               obtain ⟨left_1, right_1⟩ := hys_mono
               cases a_mem with
@@ -332,7 +332,7 @@ lemma mergeNaive_sorted_sorted [LinearOrder α] (xs ys : List α)
                 cases h with
                 | inl h_1 =>
                   subst h_1
-                  simp_all only
+                  grind
                 | inr h_2 => grind
               | inr h_1 => simp_all only
             · simp_all
