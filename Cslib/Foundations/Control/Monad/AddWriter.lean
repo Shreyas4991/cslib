@@ -6,6 +6,7 @@ Authors: Simon Hudon, Edward Ayers, Shreyas Srinivas
 module
 
 public import Mathlib
+public import Cslib.Init
 
 /-!
 # Additive Writer monads
