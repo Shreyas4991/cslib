@@ -134,11 +134,14 @@ theorem insertOrd_complexity_upper_bound [LinearOrder α] :
       simp [insertOrd, sortModel]
   | cons head tail ih =>
       obtain ⟨ih_compares, ih_inserts⟩ := ih
-      simp [insertOrd]
+      simp only [insertOrd, FreeM.lift_def, FreeM.bind_eq_bind, FreeM.liftBind_bind,
+        FreeM.pure_bind, time.eq_2, List.length_cons, partialOrderSortOps_le,
+        acsSortOpsCost_add_compares, cost_cmpLT_compares, acsSortOpsCost_add_inserts,
+        cost_cmpLT_inserts, zero_add]
       split_ifs with h_head
       · constructor <;> simp_all
       · constructor
-        · simp_all
+        · simp_all only [Bool.not_eq_true, bind_compares]
           grind
         · simp_all
 
