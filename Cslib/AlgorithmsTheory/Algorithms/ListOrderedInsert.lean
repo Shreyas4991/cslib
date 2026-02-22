@@ -144,7 +144,7 @@ theorem insertOrd_complexity_upper_bound [LinearOrder α] :
               (fun res => FreeM.liftBind (insertHead head res) FreeM.pure))
               (sortModel α)).compares ≤ tail.length + 1
           rw [bind_compares]
-          nlinarith [ih_compares]
+          linarith [ih_compares]
         · simp only [sortModel, Bool.if_false_right, Bool.and_true, h_head, decide_false,
           FreeM.lift_def, FreeM.bind_eq_bind, FreeM.pure_bind, Bool.false_eq_true, ↓reduceIte,
           zero_add, List.length_cons]
@@ -153,7 +153,7 @@ theorem insertOrd_complexity_upper_bound [LinearOrder α] :
               (fun res => FreeM.liftBind (insertHead head res) FreeM.pure))
               (sortModel α)).inserts ≤ tail.length + 1 + 1
           rw [bind_inserts]
-          nlinarith [ih_inserts]
+          linarith [ih_inserts]
 
 lemma insertOrd_Sorted [LinearOrder α] (l : List α) (x : α) :
     l.Pairwise (· ≤ ·) → ((insertOrd x l).eval (sortModel α)).Pairwise (· ≤ ·) := by
