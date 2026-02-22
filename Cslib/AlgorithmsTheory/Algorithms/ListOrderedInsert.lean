@@ -73,6 +73,7 @@ lemma insertOrd_length [LinearOrder α] (x : α) (l : List α) :
       · simp [insertOrd, sortModel, h_head]
         simpa [Prog.eval] using ih
 
+@[simp]
 lemma bind_compares {α} (x tail head) [LinearOrder α] :
     (Prog.time
         (FreeM.bind (insertOrd x tail)
@@ -84,12 +85,12 @@ lemma bind_compares {α} (x tail head) [LinearOrder α] :
       (op := insertOrd x tail)
       (cont := fun res => FreeM.liftBind (insertHead head res) FreeM.pure))
   simp only [FreeM.bind_eq_bind, sortModel, Bool.if_false_right,
-    Bool.and_true, HAdd.hAdd, time, eval, SortModel_add_compares] at h
+    Bool.and_true, HAdd.hAdd, time, eval] at h
   simp only [Add.add] at h
   simp_all only [sortModel, Bool.if_false_right, Bool.and_true]
   rfl
 
-
+@[simp]
 lemma bind_inserts {α} (x tail head) [LinearOrder α] :
     (Prog.time
         (FreeM.bind (insertOrd x tail)
@@ -101,7 +102,7 @@ lemma bind_inserts {α} (x tail head) [LinearOrder α] :
       (op := insertOrd x tail)
       (cont := fun res => FreeM.liftBind (insertHead head res) FreeM.pure))
   simp only [HAdd.hAdd, bind, sortModel, Bool.if_false_right,
-    Bool.and_true, SortModel_add_inserts, time, eval] at h
+    Bool.and_true, time, eval] at h
   simp only [Add.add] at h
   exact h
 
@@ -133,27 +134,13 @@ theorem insertOrd_complexity_upper_bound [LinearOrder α] :
       simp [insertOrd, sortModel]
   | cons head tail ih =>
       obtain ⟨ih_compares, ih_inserts⟩ := ih
-      by_cases h_head : x ≤ head
-      · constructor <;> simp [sortModel, h_head]
+      simp [insertOrd]
+      split_ifs with h_head
+      · constructor <;> simp_all
       · constructor
-        · simp only [sortModel, Bool.if_false_right, Bool.and_true, h_head, decide_false,
-          FreeM.lift_def, FreeM.bind_eq_bind, FreeM.pure_bind, Bool.false_eq_true, ↓reduceIte,
-          List.length_cons]
-          change 1 + (Prog.time
-            (FreeM.bind (insertOrd x tail)
-              (fun res => FreeM.liftBind (insertHead head res) FreeM.pure))
-              (sortModel α)).compares ≤ tail.length + 1
-          rw [bind_compares]
-          linarith [ih_compares]
-        · simp only [sortModel, Bool.if_false_right, Bool.and_true, h_head, decide_false,
-          FreeM.lift_def, FreeM.bind_eq_bind, FreeM.pure_bind, Bool.false_eq_true, ↓reduceIte,
-          zero_add, List.length_cons]
-          change (Prog.time
-            (FreeM.bind (insertOrd x tail)
-              (fun res => FreeM.liftBind (insertHead head res) FreeM.pure))
-              (sortModel α)).inserts ≤ tail.length + 1 + 1
-          rw [bind_inserts]
-          linarith [ih_inserts]
+        · simp_all
+          grind
+        · simp_all
 
 lemma insertOrd_Sorted [LinearOrder α] (l : List α) (x : α) :
     l.Pairwise (· ≤ ·) → ((insertOrd x l).eval (sortModel α)).Pairwise (· ≤ ·) := by

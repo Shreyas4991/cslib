@@ -121,36 +121,25 @@ def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) SortOpsCost wher
 
 @[grind =]
 lemma SortModel_cmpquery_iff [LinearOrder α] (x y : α) :
-  (sortModel α).evalQuery (cmpLE x y) ↔ x ≤ y := by
+    (sortModel α).evalQuery (cmpLE x y) ↔ x ≤ y := by
   simp [sortModel]
 
 @[grind =]
 lemma SortModel_insertHeadquery_iff [LinearOrder α] (l : List α) (x : α) :
-  (sortModel α).evalQuery (insertHead x l) = x :: l := by
+    (sortModel α).evalQuery (insertHead x l) = x :: l := by
   simp [sortModel]
 
 
 lemma SortModel_addComponents (m₁ m₂ m₃ : SortOpsCost) :
-  m₁ + m₂ = m₃ ↔
-    m₁.compares + m₂.compares = m₃.compares ∧
-      m₁.inserts + m₂.inserts = m₃.inserts := by
-  simp only [HAdd.hAdd]
+    m₁ + m₂ = m₃ ↔
+      m₁.compares + m₂.compares = m₃.compares ∧
+        m₁.inserts + m₂.inserts = m₃.inserts := by
   aesop
 
-@[simp]
-lemma SortModel_add_compares (m₁ m₂ : SortOpsCost) :
-  (Add.add m₁ m₂).compares = m₁.compares + m₂.compares := by
-  cases m₁; cases m₂; rfl
-
-@[simp]
-lemma SortModel_add_inserts (m₁ m₂ : SortOpsCost) :
-  (Add.add m₁ m₂).inserts = m₁.inserts + m₂.inserts := by
-  cases m₁; cases m₂; rfl
-
 lemma SortModel_leComponents (m₁ m₂ : SortOpsCost) :
-  m₁ ≤ m₂ ↔
-    m₁.compares ≤ m₂.compares ∧
-      m₁.inserts ≤ m₂.inserts := by
+    m₁ ≤ m₂ ↔
+      m₁.compares ≤ m₂.compares ∧
+        m₁.inserts ≤ m₂.inserts := by
   simp only [LE.le]
 
 end SortOpsCostModel
@@ -175,7 +164,7 @@ def sortModelNat (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
 
 @[simp]
 lemma sortModelNat_eval_1 [LinearOrder α] (y x : α) :
-  y < x → (sortModelNat α).evalQuery (cmpLE x y) = false := by
+    y < x → (sortModelNat α).evalQuery (cmpLE x y) = false := by
   intro h
   simp only [sortModelNat, Bool.if_false_right, Bool.and_true, decide_eq_false_iff_not, not_le]
   exact h
