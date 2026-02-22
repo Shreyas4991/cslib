@@ -36,9 +36,9 @@ def insertOrd (x : α) (l : List α) : Prog (SortOps α) (List α) := do
         insertHead a res
 
 lemma insertOrd_is_ListOrderedInsert [LinearOrder α] :
-  ∀ (x : α) (l : List α) ,
-    l.Pairwise (· ≤ ·) →
-      (insertOrd x l).eval (sortModel α) = l.orderedInsert (· ≤ ·) x := by
+    ∀ (x : α) (l : List α) ,
+      l.Pairwise (· ≤ ·) →
+        (insertOrd x l).eval (sortModel α) = l.orderedInsert (· ≤ ·) x := by
   intro x l h_sorted
   induction l with
   | nil =>
@@ -63,7 +63,7 @@ lemma insertOrd_is_ListOrderedInsert [LinearOrder α] :
 
 
 lemma insertOrd_length [LinearOrder α] (x : α) (l : List α) :
-  ((insertOrd x l).eval (sortModel α)).length = l.length + 1 := by
+    ((insertOrd x l).eval (sortModel α)).length = l.length + 1 := by
   induction l with
   | nil =>
       simp [insertOrd, sortModel]
@@ -74,11 +74,11 @@ lemma insertOrd_length [LinearOrder α] (x : α) (l : List α) :
         simpa [Prog.eval] using ih
 
 lemma bind_compares {α} (x tail head) [LinearOrder α] :
-  (Prog.time
-      (FreeM.bind (insertOrd x tail)
-        (fun res => FreeM.liftBind (insertHead head res) FreeM.pure))
-      (sortModel α)).compares =
-    (Prog.time (insertOrd x tail) (sortModel α)).compares := by
+    (Prog.time
+        (FreeM.bind (insertOrd x tail)
+          (fun res => FreeM.liftBind (insertHead head res) FreeM.pure))
+        (sortModel α)).compares =
+      (Prog.time (insertOrd x tail) (sortModel α)).compares := by
   have h := congrArg SortOpsCost.compares
     (Prog.time.bind (M := sortModel α)
       (op := insertOrd x tail)
@@ -91,11 +91,11 @@ lemma bind_compares {α} (x tail head) [LinearOrder α] :
 
 
 lemma bind_inserts {α} (x tail head) [LinearOrder α] :
-  (Prog.time
-      (FreeM.bind (insertOrd x tail)
-        (fun res => FreeM.liftBind (insertHead head res) FreeM.pure))
-      (sortModel α)).inserts =
-    (Prog.time (insertOrd x tail) (sortModel α)).inserts + 1 := by
+    (Prog.time
+        (FreeM.bind (insertOrd x tail)
+          (fun res => FreeM.liftBind (insertHead head res) FreeM.pure))
+        (sortModel α)).inserts =
+      (Prog.time (insertOrd x tail) (sortModel α)).inserts + 1 := by
   have h := congrArg SortOpsCost.inserts
     (Prog.time.bind (M := sortModel α)
       (op := insertOrd x tail)
@@ -110,23 +110,23 @@ lemma cost_cmpLT_compares [LinearOrder α] : ((sortModel α).2 (cmpLE head x)).c
   simp [sortModel]
 
 @[simp]
-lemma cost_cmpLT_inserts [LinearOrder α]
-  : ((sortModel α).2 (cmpLE head x)).inserts = 0 := by
+lemma cost_cmpLT_inserts [LinearOrder α] :
+    ((sortModel α).2 (cmpLE head x)).inserts = 0 := by
   simp [sortModel]
 
 @[simp]
-lemma cost_insertHead_compares [LinearOrder α]
-  : ((sortModel α).2 (insertHead x l)).compares = 0 := by
+lemma cost_insertHead_compares [LinearOrder α] :
+    ((sortModel α).2 (insertHead x l)).compares = 0 := by
   simp [sortModel]
 
 @[simp]
-lemma cost_insertHead_inserts [LinearOrder α]
-  : ((sortModel α).2 (insertHead x l)).inserts = 1 := by
+lemma cost_insertHead_inserts [LinearOrder α] :
+    ((sortModel α).2 (insertHead x l)).inserts = 1 := by
   simp [sortModel]
 
 theorem insertOrd_complexity_upper_bound [LinearOrder α] :
-  ∀ (l : List α) (x : α),
-    (insertOrd x l).time (sortModel α) ≤ ⟨l.length, l.length + 1⟩ := by
+    ∀ (l : List α) (x : α),
+      (insertOrd x l).time (sortModel α) ≤ ⟨l.length, l.length + 1⟩ := by
   intro l x
   induction l with
   | nil =>
@@ -158,7 +158,7 @@ theorem insertOrd_complexity_upper_bound [LinearOrder α] :
 
 
 lemma insertOrd_Sorted [LinearOrder α] (l : List α) (x : α) :
-  l.Pairwise (· ≤ ·) → ((insertOrd x l).eval (sortModel α)).Pairwise (· ≤ ·) := by
+    l.Pairwise (· ≤ ·) → ((insertOrd x l).eval (sortModel α)).Pairwise (· ≤ ·) := by
   intro l_mono
   rw [insertOrd_is_ListOrderedInsert x l l_mono]
   apply List.Pairwise.orderedInsert

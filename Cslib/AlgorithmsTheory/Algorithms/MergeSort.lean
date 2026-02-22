@@ -33,7 +33,7 @@ def mergeNaive [LinearOrder α] (x y : List α) : List α :=
         y :: rest
 
 lemma mergeNaive_length [LinearOrder α] (x y : List α) :
-  (mergeNaive x y).length = x.length + y.length := by
+    (mergeNaive x y).length = x.length + y.length := by
   fun_induction mergeNaive <;> try grind
 
 
@@ -53,9 +53,9 @@ def merge (x y : List α) : Prog (SortOps α) (List α) := do
         return (y :: rest)
 
 lemma merge_bind_pure_insert_x [LinearOrder α] (x y : α) (xs ys : List α) :
-  (Prog.time
-      (FreeM.bind (merge xs (y :: ys)) (fun rest => FreeM.pure (x :: rest))) (sortModelNat α))
-      = (merge xs (y :: ys)).time (sortModelNat α) := by
+    (Prog.time
+        (FreeM.bind (merge xs (y :: ys)) (fun rest => FreeM.pure (x :: rest))) (sortModelNat α))
+        = (merge xs (y :: ys)).time (sortModelNat α) := by
   have h := Prog.time.bind (sortModelNat α) (merge xs (y :: ys))
     (fun rest => FreeM.pure (x :: rest))
   have h' : Prog.time (FreeM.bind (merge xs (y :: ys)) (fun rest => FreeM.pure (x :: rest)))
@@ -64,9 +64,9 @@ lemma merge_bind_pure_insert_x [LinearOrder α] (x y : α) (xs ys : List α) :
   exact Nat.add_right_cancel h'
 
 lemma merge_bind_pure_insert_y [LinearOrder α] (x y : α) (xs ys : List α) :
-  (Prog.time
-    (FreeM.bind (merge (x :: xs) ys) (fun rest => FreeM.pure (y :: rest))) (sortModelNat α))
-    = (merge (x :: xs) ys).time (sortModelNat α) := by
+    (Prog.time
+      (FreeM.bind (merge (x :: xs) ys) (fun rest => FreeM.pure (y :: rest))) (sortModelNat α))
+      = (merge (x :: xs) ys).time (sortModelNat α) := by
   have h := Prog.time.bind (sortModelNat α) (merge (x :: xs) ys)
     (fun rest => FreeM.pure (y :: rest))
   have h' : Prog.time (FreeM.bind (merge (x :: xs) ys) (fun rest => FreeM.pure (y :: rest)))
@@ -75,7 +75,7 @@ lemma merge_bind_pure_insert_y [LinearOrder α] (x y : α) (xs ys : List α) :
   exact Nat.add_right_cancel h'
 
 lemma merge_timeComplexity [LinearOrder α] (x y : List α) :
-  (merge x y).time (sortModelNat α) ≤  x.length + y.length := by
+    (merge x y).time (sortModelNat α) ≤  x.length + y.length := by
   fun_induction merge
   · simp
   · simp
@@ -104,7 +104,7 @@ lemma merge_timeComplexity [LinearOrder α] (x y : List α) :
 
 
 lemma merge_is_mergeNaive [LinearOrder α] (x y : List α) :
-  (merge x y).eval (sortModelNat α) = mergeNaive x y := by
+    (merge x y).eval (sortModelNat α) = mergeNaive x y := by
   fun_induction mergeNaive
   · simp [merge]
   · simp [merge]
@@ -114,7 +114,7 @@ lemma merge_is_mergeNaive [LinearOrder α] (x y : List α) :
     simp_all [Prog.eval, merge, rest]
 
 lemma merge_length [LinearOrder α] (x y : List α) :
-  ((merge x y).eval (sortModelNat α)).length = x.length + y.length := by
+    ((merge x y).eval (sortModelNat α)).length = x.length + y.length := by
   rw [merge_is_mergeNaive]
   apply mergeNaive_length
 
@@ -143,7 +143,7 @@ def mergeSortNaive [LinearOrder α] (xs : List α) : List α :=
     mergeNaive sortedLeft sortedRight
 
 lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
-  (mergeSort xs).eval (sortModelNat α) = mergeSortNaive xs := by
+    (mergeSort xs).eval (sortModelNat α) = mergeSortNaive xs := by
   classical
   let P : Nat → Prop :=
     fun n => ∀ xs, xs.length = n → (mergeSort xs).eval (sortModelNat α) = mergeSortNaive xs
@@ -220,7 +220,7 @@ lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
 
 
 lemma mergeSortNaive_length [LinearOrder α] (xs : List α) :
-  (mergeSortNaive xs).length = xs.length := by
+    (mergeSortNaive xs).length = xs.length := by
   let P : Nat → Prop :=
     fun n => ∀ ys : List α, ys.length = n → (mergeSortNaive ys).length = ys.length
   have hP : P xs.length := by
@@ -260,13 +260,13 @@ lemma mergeSortNaive_length [LinearOrder α] (xs : List α) :
   exact hP xs rfl
 
 lemma mergeSort_length [LinearOrder α] (xs : List α) :
-  ((mergeSort xs).eval (sortModelNat α)).length = xs.length := by
+    ((mergeSort xs).eval (sortModelNat α)).length = xs.length := by
   rw [mergeSort_is_mergeSortNaive]
   apply mergeSortNaive_length
 
 
 lemma mergeNaive_mem [LinearOrder α] (xs ys : List α) :
-  x ∈ mergeNaive xs ys → x ∈ xs ∨ x ∈ ys := by
+    x ∈ mergeNaive xs ys → x ∈ xs ∨ x ∈ ys := by
   fun_induction mergeNaive
   · simp
   · simp
@@ -292,8 +292,8 @@ lemma mergeNaive_mem [LinearOrder α] (xs ys : List α) :
       tauto
 
 lemma mergeNaive_sorted_sorted [LinearOrder α] (xs ys : List α)
-  (hxs_mono : xs.Pairwise (· ≤ ·)) (hys_mono : ys.Pairwise (· ≤ ·)) :
-  (mergeNaive xs ys).Pairwise (· ≤ ·) := by
+    (hxs_mono : xs.Pairwise (· ≤ ·)) (hys_mono : ys.Pairwise (· ≤ ·)) :
+    (mergeNaive xs ys).Pairwise (· ≤ ·) := by
   induction xs generalizing ys with
   | nil =>
       simp_all [mergeNaive]
@@ -339,14 +339,14 @@ lemma mergeNaive_sorted_sorted [LinearOrder α] (xs ys : List α)
 
 
 lemma merge_sorted_sorted [LinearOrder α] (xs ys : List α)
-  (hxs_mono : xs.Pairwise (· ≤ ·)) (hys_mono : ys.Pairwise (· ≤ ·)) :
-  ((merge xs ys).eval (sortModelNat α)).Pairwise (· ≤ ·) := by
+    (hxs_mono : xs.Pairwise (· ≤ ·)) (hys_mono : ys.Pairwise (· ≤ ·)) :
+    ((merge xs ys).eval (sortModelNat α)).Pairwise (· ≤ ·) := by
   rw [merge_is_mergeNaive]
   apply mergeNaive_sorted_sorted
   all_goals assumption
 
 lemma mergeSortNaive_sorted [LinearOrder α] (xs : List α) :
-  (mergeSortNaive xs).Pairwise (· ≤ ·) := by
+    (mergeSortNaive xs).Pairwise (· ≤ ·) := by
   let P : Nat → Prop :=
     fun n => ∀ ys : List α, ys.length = n → (mergeSortNaive ys).Pairwise (· ≤ ·)
   have hP : P xs.length := by
@@ -392,7 +392,7 @@ lemma mergeSortNaive_sorted [LinearOrder α] (xs : List α) :
   exact hP xs rfl
 
 theorem mergeSort_sorted [LinearOrder α] (xs : List α) :
-  ((mergeSort xs).eval (sortModelNat α)).Pairwise (· ≤ ·) := by
+    ((mergeSort xs).eval (sortModelNat α)).Pairwise (· ≤ ·) := by
   rw [mergeSort_is_mergeSortNaive]
   apply mergeSortNaive_sorted
 
@@ -442,7 +442,7 @@ lemma T_monotone : Monotone T := by
   exact Nat.mul_le_mul h_ij (Nat.clog_monotone 2 h_ij)
 
 theorem mergeSort_complexity [LinearOrder α] (xs : List α) :
-  ((mergeSort xs).time (sortModelNat α)) ≤ (T (xs.length)) := by
+    ((mergeSort xs).time (sortModelNat α)) ≤ (T (xs.length)) := by
   fun_induction mergeSort
   · simp [T]
   · expose_names

@@ -28,7 +28,7 @@ def insertionSort (l : List α) : Prog (SortOps α) (List α) :=
       insertOrd x rest
 
 theorem insertionSort_sorted [LinearOrder α] (l : List α) :
-  ((insertionSort l).eval (sortModel α)).Pairwise (· ≤ ·) := by
+    ((insertionSort l).eval (sortModel α)).Pairwise (· ≤ ·) := by
   induction l with
   | nil =>
       simp [insertionSort]
@@ -38,25 +38,27 @@ theorem insertionSort_sorted [LinearOrder α] (l : List α) :
       exact h
 
 lemma insertionSort_time_compares [LinearOrder α] (head : α) (tail : List α) :
-  ((insertionSort (head :: tail)).time (sortModel α)).compares =
-    ((insertionSort tail).time (sortModel α)).compares +
-      ((insertOrd head ((insertionSort tail).eval (sortModel α))).time (sortModel α)).compares := by
+    ((insertionSort (head :: tail)).time (sortModel α)).compares =
+      ((insertionSort tail).time (sortModel α)).compares +
+        ((insertOrd head ((insertionSort tail).eval
+          (sortModel α))).time (sortModel α)).compares := by
   have h := congrArg SortOpsCost.compares
     (Prog.time.bind (M := sortModel α) (insertionSort tail) (fun rest => insertOrd head rest))
   simp only [HAdd.hAdd, Add.add] at h
   simpa [insertionSort] using h
 
 lemma insertionSort_time_inserts [LinearOrder α] (head : α) (tail : List α) :
-  ((insertionSort (head :: tail)).time (sortModel α)).inserts =
-    ((insertionSort tail).time (sortModel α)).inserts +
-      ((insertOrd head ((insertionSort tail).eval (sortModel α))).time (sortModel α)).inserts := by
+    ((insertionSort (head :: tail)).time (sortModel α)).inserts =
+      ((insertionSort tail).time (sortModel α)).inserts +
+        ((insertOrd head ((insertionSort tail).eval (sortModel α))).time
+          (sortModel α)).inserts := by
   have h := congrArg SortOpsCost.inserts
     (Prog.time.bind (M := sortModel α) (insertionSort tail) (fun rest => insertOrd head rest))
   simp only [HAdd.hAdd, Add.add] at h
   simpa [insertionSort] using h
 
 lemma insertionSort_length [LinearOrder α] (l : List α) :
-  ((insertionSort l).eval (sortModel α)).length = l.length := by
+    ((insertionSort l).eval (sortModel α)).length = l.length := by
   induction l with
   | nil =>
       simp [insertionSort]
@@ -66,8 +68,8 @@ lemma insertionSort_length [LinearOrder α] (l : List α) :
       simpa [insertionSort, ih] using h
 
 theorem insertionSort_complexity [LinearOrder α] (l : List α) :
-  ((insertionSort l).time (sortModel α))
-    ≤ ⟨l.length * (l.length + 1), (l.length + 1) * (l.length + 2)⟩ := by
+    ((insertionSort l).time (sortModel α))
+      ≤ ⟨l.length * (l.length + 1), (l.length + 1) * (l.length + 2)⟩ := by
   induction l with
   | nil =>
       simp only [insertionSort, FreeM.pure_eq_pure, sortModel,
