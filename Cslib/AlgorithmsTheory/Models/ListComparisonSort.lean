@@ -40,12 +40,12 @@ structure SortOpsCost where
   /-- `inserts` counts the number of calls to `insertHead` -/
   inserts : ℕ
 
-@[simp, grind]
+@[simps, grind]
 instance zeroSortOps : Zero SortOpsCost := ⟨0,0⟩
 
-@[simp, grind]
+@[simps, grind]
 instance partialOrderSortOps : PartialOrder SortOpsCost where
-  le | ⟨c₁, i₁⟩, ⟨c₂, i₂⟩ => c₁ ≤ c₂ ∧ i₁ ≤ i₂
+  le soc₁ soc₂ := soc₁.compares ≤ soc₂.compares ∧ soc₁.inserts ≤ soc₂.inserts
   le_refl := by
     intro c
     simp only [le_refl, and_self]
@@ -61,21 +61,23 @@ instance partialOrderSortOps : PartialOrder SortOpsCost where
     refine ⟨?_, ?_⟩
     all_goals solve_by_elim[Nat.le_antisymm]
 
+
 /-- Component-wise addition operation on `SortOpsCost` -/
-def add : SortOpsCost → SortOpsCost → SortOpsCost
-  | ⟨c₁, i₁⟩, ⟨c₂, i₂⟩ => ⟨c₁ + c₂, i₁ + i₂⟩
+@[simps]
+def add (soc₁ soc₂ : SortOpsCost) : SortOpsCost:=
+  ⟨soc₁.compares + soc₂.compares, soc₁.inserts + soc₂.inserts⟩
 
 /-- Component-wise scalar (natural number) multiplication operation on `SortOpsCost` -/
-def nsmul : ℕ → SortOpsCost → SortOpsCost
-  | n, ⟨c, i⟩ => ⟨n • c, n • i⟩
+@[simps]
+def nsmul (n : ℕ) (soc : SortOpsCost) : SortOpsCost := ⟨n • soc.compares, n • soc.inserts⟩
 
 
+@[simps!]
 instance acsSortOpsCost : AddCommMonoid SortOpsCost where
   add := add
-  add_assoc := by
-    intro a b c
+  add_assoc a b c := by
     simp only [HAdd.hAdd]
-    simp [add, Nat.add_assoc]
+    simp only [add, Nat.add_assoc]
   add_comm := by
     intro a b
     simp only [HAdd.hAdd]
@@ -105,8 +107,7 @@ instance acsSortOpsCost : AddCommMonoid SortOpsCost where
 A model of `SortOps` that uses `SortOpsCost` as the cost type for operations.
 -/
 def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) SortOpsCost where
-  evalQuery q :=
-    match q with
+  evalQuery
     | .cmpLE x y =>
             if x ≤ y then
               true
@@ -157,7 +158,8 @@ end SortOpsCostModel
 section NatModel
 
 /--
-A model of `SortOps` that uses `ℕ` as the type for the cost of operations.
+A model of `SortOps` that uses `ℕ` as the type for the cost of operations. In this model,
+both comparisons and insertions are counted in a single `ℕ` parameter.
 -/
 def sortModelNat (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
   evalQuery

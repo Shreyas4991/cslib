@@ -155,8 +155,6 @@ theorem insertOrd_complexity_upper_bound [LinearOrder α] :
           rw [bind_inserts]
           nlinarith [ih_inserts]
 
-
-
 lemma insertOrd_Sorted [LinearOrder α] (l : List α) (x : α) :
     l.Pairwise (· ≤ ·) → ((insertOrd x l).eval (sortModel α)).Pairwise (· ≤ ·) := by
   intro l_mono

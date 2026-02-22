@@ -36,7 +36,6 @@ lemma mergeNaive_length [LinearOrder α] (x y : List α) :
     (mergeNaive x y).length = x.length + y.length := by
   fun_induction mergeNaive <;> try grind
 
-
 /-- Merge two sorted lists using comparisons in the query monad. -/
 @[simp]
 def merge (x y : List α) : Prog (SortOps α) (List α) := do
@@ -166,19 +165,16 @@ lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
         simpa [half] using (Nat.div_lt_self hpos h2)
       have hleft_le : left.length ≤ half := by
         simp [left, List.length_take]
-      have hleft_lt_len : left.length < xs.length :=
-        lt_of_le_of_lt hleft_le hhalf_lt
+      have hleft_lt_len : left.length < xs.length := lt_of_le_of_lt hleft_le hhalf_lt
       have hright_lt_len : right.length < xs.length := by
         have hhalf_pos : 0 < half := by
           have h2 : 0 < (2 : Nat) := by decide
           simpa [half] using (Nat.div_pos hge h2)
         have hsub : xs.length - half < xs.length := Nat.sub_lt hpos hhalf_pos
         simpa [right, List.length_drop, half] using hsub
-      have hleft :
-          (mergeSort left).eval (sortModelNat α) = mergeSortNaive left :=
+      have hleft : (mergeSort left).eval (sortModelNat α) = mergeSortNaive left :=
         (ih left.length (by simpa [hlen] using hleft_lt_len)) left rfl
-      have hright :
-          (mergeSort right).eval (sortModelNat α) = mergeSortNaive right :=
+      have hright : (mergeSort right).eval (sortModelNat α) = mergeSortNaive right :=
         (ih right.length (by simpa [hlen] using hright_lt_len)) right rfl
       have hleft' :
           FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q)

@@ -34,9 +34,8 @@ def listLinearSearch (l : List α) (x : α) : Prog (ListSearch α) Bool := do
       else
         listLinearSearch ls x
 
-lemma listLinearSearchM_correct_true [iDec : DecidableEq α] (l : List α) :
-    ∀ x : α, x ∈ l → (listLinearSearch l x).eval ListSearch_Nat = true := by
-  intro x x_mem_l
+lemma listLinearSearchM_correct_true [DecidableEq α] (l : List α) {x : α} (x_mem_l : x ∈ l) :
+    (listLinearSearch l x).eval ListSearch_Nat = true := by
   induction l with
   | nil =>
       simp_all only [List.not_mem_nil]
@@ -56,34 +55,31 @@ lemma listLinearSearchM_correct_true [iDec : DecidableEq α] (l : List α) :
         · specialize ih x_tail
           simp_all
 
-lemma listLinearSearchM_correct_false [DecidableEq α] (l : List α) :
-    ∀ x : α, x ∉ l → (listLinearSearch l x).eval ListSearch_Nat = false := by
-  intro x x_mem_l
+lemma listLinearSearchM_correct_false [DecidableEq α] (l : List α) {x : α} (x_mem_l : x ∉ l) :
+    (listLinearSearch l x).eval ListSearch_Nat = false := by
   induction l with
   | nil =>
       simp_all [listLinearSearch, eval]
   | cons head tail ih =>
       simp only [List.mem_cons, not_or] at x_mem_l
       specialize ih x_mem_l.2
-      simp only [listLinearSearch, bind, FreeM.lift_def, pure, FreeM.liftBind_bind, FreeM.pure_bind,
-        eval, FreeM.liftM, Id.run]
+      simp only [eval, listLinearSearch, bind, FreeM.lift_def, FreeM.pure_eq_pure,
+        FreeM.liftBind_bind, FreeM.pure_bind, FreeM.liftM_liftBind]
       split_ifs with h_eq
-      · simp [ListSearch_Nat] at h_eq
-        exfalso
-        exact x_mem_l.1 h_eq.symm
-      · exact ih
+      · simp only [pure, ListSearch_Nat, List.head?_cons, Option.some.injEq,
+        decide_eq_true_eq] at h_eq
+        grind
+      · assumption
 
-lemma listLinearSearchM_time_complexity_upper_bound [DecidableEq α] (l : List α) :
-    ∀ x : α, (listLinearSearch l x).time ListSearch_Nat ≤ 1 + l.length := by
-  intro x
+lemma listLinearSearchM_time_complexity_upper_bound [DecidableEq α] (l : List α) (x : α) :
+  (listLinearSearch l x).time ListSearch_Nat ≤ 1 + l.length := by
   induction l with
   | nil =>
       simp_all [listLinearSearch, ListSearch_Nat, time]
   | cons head tail ih =>
       simp_all [listLinearSearch, ListSearch_Nat]
       split_ifs with h_head
-      · simp [time]
-      · grind
+      all_goals grind
 
 lemma listLinearSearchM_time_complexity_lower_bound [DecidableEq α] [inon : Nontrivial α] :
     ∃ l : List α, ∃ x : α, (listLinearSearch l x).time ListSearch_Nat = l.length := by
