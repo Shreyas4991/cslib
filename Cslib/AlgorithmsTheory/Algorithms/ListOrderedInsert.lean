@@ -84,10 +84,12 @@ lemma bind_compares {α} (x tail head) [LinearOrder α] :
     (Prog.time.bind (M := sortModel α)
       (op := insertOrd x tail)
       (cont := fun res => FreeM.liftBind (insertHead head res) FreeM.pure))
-  simp only [FreeM.bind_eq_bind, sortModel, Bool.if_false_right,
-    Bool.and_true, HAdd.hAdd, time, eval] at h
-  simp only [Add.add] at h
-  simp_all only [sortModel, Bool.if_false_right, Bool.and_true]
+  simp only [time, sortModel, bind_pure_comp,
+    FreeM.bind_eq_bind, FreeM.liftM_bind, FreeM.liftM_liftBind, FreeM.liftM_pure, bind_pure,
+    Lean.TimeM.time_bind, HAdd.hAdd, Lean.TimeM.time_map, eval] at h
+  simp_all only [time, sortModel, bind_pure_comp,
+    FreeM.liftM_bind, FreeM.liftM_liftBind, FreeM.liftM_pure, bind_pure, Lean.TimeM.time_bind,
+    Lean.TimeM.time_map, AddSortOps_add, add_compares, Nat.add_eq_left]
   rfl
 
 @[simp]
@@ -101,9 +103,7 @@ lemma bind_inserts {α} (x tail head) [LinearOrder α] :
     (Prog.time.bind (M := sortModel α)
       (op := insertOrd x tail)
       (cont := fun res => FreeM.liftBind (insertHead head res) FreeM.pure))
-  simp only [HAdd.hAdd, bind, sortModel, Bool.if_false_right,
-    Bool.and_true, time, eval] at h
-  simp only [Add.add] at h
+  simp only [sortModel, time, eval] at h
   exact h
 
 theorem insertOrd_complexity_upper_bound [LinearOrder α] :
@@ -115,13 +115,16 @@ theorem insertOrd_complexity_upper_bound [LinearOrder α] :
       simp [insertOrd, sortModel]
   | cons head tail ih =>
       obtain ⟨ih_compares, ih_inserts⟩ := ih
-      simp only [insertOrd, FreeM.lift_def, FreeM.bind_eq_bind, FreeM.liftBind_bind,
-        FreeM.pure_bind, time.eq_2, List.length_cons, partialOrderSortOps_le]
+      simp only [time, bind_pure_comp, insertOrd, FreeM.lift_def, FreeM.bind_eq_bind,
+        FreeM.liftBind_bind, FreeM.pure_bind, FreeM.liftM_liftBind, bind_map_left,
+        Lean.TimeM.time_bind, AddSortOps_add, List.length_cons, le_def, add_compares, add_inserts]
       split_ifs with h_head
       · constructor <;> simp_all
       · constructor
-        · simp_all only [Bool.not_eq_true, AddSortOps_add, add_compares, cost_cmpLT_compares,
-          bind_compares]
+        · simp_all only [time, bind_pure_comp, Bool.not_eq_true, Lean.TimeM.time_tick,
+          cost_cmpLT_compares, FreeM.liftM_bind, FreeM.liftM_liftBind, FreeM.liftM_pure, bind_pure,
+          Lean.TimeM.time_bind, Lean.TimeM.time_map, AddSortOps_add, add_compares,
+          cost_insertHead_compares, add_zero]
           grind
         · simp_all
 

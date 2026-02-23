@@ -72,8 +72,8 @@ theorem insertionSort_complexity [LinearOrder α] (l : List α) :
       ≤ ⟨l.length * (l.length + 1), (l.length + 1) * (l.length + 2)⟩ := by
   induction l with
   | nil =>
-      simp only [insertionSort, FreeM.pure_eq_pure, sortModel,
-        Bool.if_false_right, Bool.and_true, time.eq_1, List.length_nil, zero_add, mul_one, one_mul]
+      simp only [insertionSort, FreeM.pure_eq_pure, sortModel, time.eq_1, List.length_nil,
+        zero_add, mul_one, one_mul]
       tauto
   | cons head tail ih =>
       have h := insertOrd_complexity_upper_bound ((insertionSort tail).eval (sortModel α)) head

@@ -116,11 +116,7 @@ A model of `SortOps` that uses `SortOpsCost` as the cost type for operations.
 -/
 def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) SortOpsCost where
   evalQuery
-    | .cmpLE x y =>
-            if x ≤ y then
-              true
-            else
-              false
+    | .cmpLE x y => decide (x ≤ y)
     | .insertHead x l => x :: l
   cost q :=
     match q with
@@ -166,11 +162,7 @@ both comparisons and insertions are counted in a single `ℕ` parameter.
 -/
 def sortModelNat (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
   evalQuery
-    | .cmpLE x y =>
-            if x ≤ y then
-              true
-            else
-              false
+    | .cmpLE x y => decide (x ≤ y)
     | .insertHead x l => x :: l
   cost
     | .cmpLE _ _ => 1
@@ -180,7 +172,7 @@ def sortModelNat (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
 lemma sortModelNat_eval_1 [LinearOrder α] (y x : α) :
     y < x → (sortModelNat α).evalQuery (cmpLE x y) = false := by
   intro h
-  simp only [sortModelNat, Bool.if_false_right, Bool.and_true, decide_eq_false_iff_not, not_le]
+  simp only [sortModelNat, decide_eq_false_iff_not, not_le]
   exact h
 
 end NatModel

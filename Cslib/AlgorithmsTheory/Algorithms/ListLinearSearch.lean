@@ -79,7 +79,8 @@ lemma listLinearSearchM_time_complexity_upper_bound [DecidableEq α] (l : List �
   | cons head tail ih =>
       simp_all [listLinearSearch, ListSearch_Nat]
       split_ifs with h_head
-      all_goals grind
+      · simp
+      · grind
 
 lemma listLinearSearchM_time_complexity_lower_bound [DecidableEq α] [inon : Nontrivial α] :
     ∃ l : List α, ∃ x : α, (listLinearSearch l x).time ListSearch_Nat = l.length := by

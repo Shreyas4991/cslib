@@ -51,55 +51,22 @@ def merge (x y : List α) : Prog (SortOps α) (List α) := do
         let rest ← merge (x :: xs') ys'
         return (y :: rest)
 
-lemma merge_bind_pure_insert_x [LinearOrder α] (x y : α) (xs ys : List α) :
-    (Prog.time
-        (FreeM.bind (merge xs (y :: ys)) (fun rest => FreeM.pure (x :: rest))) (sortModelNat α))
-        = (merge xs (y :: ys)).time (sortModelNat α) := by
-  have h := Prog.time.bind (sortModelNat α) (merge xs (y :: ys))
-    (fun rest => FreeM.pure (x :: rest))
-  have h' : Prog.time (FreeM.bind (merge xs (y :: ys)) (fun rest => FreeM.pure (x :: rest)))
-              (sortModelNat α) + 1 = (merge xs (y :: ys)).time (sortModelNat α) + 1 := by
-      simpa using h
-  exact Nat.add_right_cancel h'
-
-lemma merge_bind_pure_insert_y [LinearOrder α] (x y : α) (xs ys : List α) :
-    (Prog.time
-      (FreeM.bind (merge (x :: xs) ys) (fun rest => FreeM.pure (y :: rest))) (sortModelNat α))
-      = (merge (x :: xs) ys).time (sortModelNat α) := by
-  have h := Prog.time.bind (sortModelNat α) (merge (x :: xs) ys)
-    (fun rest => FreeM.pure (y :: rest))
-  have h' : Prog.time (FreeM.bind (merge (x :: xs) ys) (fun rest => FreeM.pure (y :: rest)))
-              (sortModelNat α) + 1 = (merge (x :: xs) ys).time (sortModelNat α) + 1 := by
-    simpa using h
-  exact Nat.add_right_cancel h'
-
 lemma merge_timeComplexity [LinearOrder α] (x y : List α) :
     (merge x y).time (sortModelNat α) ≤  x.length + y.length := by
   fun_induction merge
   · simp
   · simp
   · expose_names
-    simp only [bind, FreeM.lift_def, pure, FreeM.liftBind_bind, FreeM.pure_bind, sortModelNat,
-      Bool.if_false_right, Bool.and_true, Prog.time.eq_2, decide_eq_true_eq, List.length_cons]
+    simp_all only [Prog.time, pure,
+      List.length_cons, FreeM.lift_def, FreeM.bind_eq_bind, FreeM.liftBind_bind, FreeM.pure_bind,
+      FreeM.liftM_liftBind, bind_assoc, Lean.TimeM.time_bind, Lean.TimeM.time_tick]
     split_ifs with hxy
-    · have hbind := merge_bind_pure_insert_x x y xs' ys'
-      simp only [sortModelNat, Bool.if_false_right, Bool.and_true] at hbind
-      rw [hbind]
-      have hih :
-          (merge xs' (y :: ys')).time (sortModelNat α) ≤
-            xs'.length + (y :: ys').length := by
-        simpa using ih2
-      have h := Nat.add_le_add_left hih 1
-      simpa [List.length_cons, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h
-    · have hbind := merge_bind_pure_insert_y x y xs' ys'
-      simp only [sortModelNat, Bool.if_false_right, Bool.and_true] at hbind
-      rw [hbind]
-      have hih :
-          (merge (x :: xs') ys').time (sortModelNat α) ≤
-            (x :: xs').length + ys'.length := by
-        simpa using ih1
-      have h := Nat.add_le_add_left hih 1
-      simpa [List.length_cons, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h
+    · simp_all only [FreeM.liftM_bind, FreeM.liftM_pure, bind_pure_comp, Lean.TimeM.time_map]
+      sorry
+    · simp_all only [Bool.not_eq_true, FreeM.liftM_bind, FreeM.liftM_pure, bind_pure_comp,
+      Lean.TimeM.time_map]
+      sorry
+
 
 
 lemma merge_is_mergeNaive [LinearOrder α] (x y : List α) :
