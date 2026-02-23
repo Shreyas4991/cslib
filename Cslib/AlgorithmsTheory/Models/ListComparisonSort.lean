@@ -75,7 +75,7 @@ instance : LT SortOpsCost where
 instance partialOrderSortOps : PartialOrder SortOpsCost := by
   apply Function.Injective.partialOrder SortOpsCost.toProd
   · exact SortOpsCost.toProd.inj'
-  · simp [SortOpsCost.toProd]
+  · rfl
   · intro x y
     simp only [SortOpsCost.toProd, Function.Embedding.coeFn_mk, Prod.mk_lt_mk, lt_def, le_def]
     refine ⟨?_, ?_⟩
