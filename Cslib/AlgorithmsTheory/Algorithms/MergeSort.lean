@@ -152,29 +152,17 @@ lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
     by_cases hlt : xs.length < 2
     · nth_rw 1 [mergeSort, mergeSortNaive]
       simp [hlt, Prog.eval]
-    · have hge : 2 ≤ xs.length := by
-        exact le_of_not_gt hlt
-      have hpos : 0 < xs.length := by
-        exact lt_of_lt_of_le (by decide : 0 < (2 : Nat)) hge
+    · have hge : 2 ≤ xs.length := by grind
+      have hpos : 0 < xs.length := by grind
       set half : Nat := xs.length / 2
       set left : List α := xs.take half
       set right : List α := xs.drop half
-      have hhalf_lt : half < xs.length := by
-        have h2 : 1 < (2 : Nat) := by decide
-        simpa [half] using (Nat.div_lt_self hpos h2)
-      have hleft_le : left.length ≤ half := by
-        simp [left, List.length_take]
-      have hleft_lt_len : left.length < xs.length := lt_of_le_of_lt hleft_le hhalf_lt
-      have hright_lt_len : right.length < xs.length := by
-        have hhalf_pos : 0 < half := by
-          have h2 : 0 < (2 : Nat) := by decide
-          simpa [half] using (Nat.div_pos hge h2)
-        have hsub : xs.length - half < xs.length := Nat.sub_lt hpos hhalf_pos
-        simpa [right, List.length_drop, half] using hsub
-      have hleft : (mergeSort left).eval (sortModelNat α) = mergeSortNaive left :=
-        (ih left.length (by simpa [hlen] using hleft_lt_len)) left rfl
-      have hright : (mergeSort right).eval (sortModelNat α) = mergeSortNaive right :=
-        (ih right.length (by simpa [hlen] using hright_lt_len)) right rfl
+      have hhalf_lt : half < xs.length := by grind
+      have hleft_le : left.length ≤ half := by grind
+      have hleft_lt_len : left.length < xs.length := by grind
+      have hright_lt_len : right.length < xs.length := by grind
+      have hleft : (mergeSort left).eval (sortModelNat α) = mergeSortNaive left := by grind
+      have hright : (mergeSort right).eval (sortModelNat α) = mergeSortNaive right := by grind
       have hleft' :
           FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q)
               (mergeSort (xs.take (xs.length / 2))) =
@@ -188,16 +176,14 @@ lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
       have hmerge (a b : List α) :
           FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q) (merge a b) =
             mergeNaive a b := by
-        simpa [Prog.eval, Id.run] using (merge_is_mergeNaive (α := α) a b)
+        simpa [Prog.eval] using (merge_is_mergeNaive (α := α) a b)
       nth_rw 1 [mergeSort]
       nth_rw 1 [mergeSortNaive]
       simp only [hlt, if_false, Prog.eval, Id.run, bind, pure, FreeM.liftM_bind]
-      set a :=
-        FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q)
-          (mergeSort (List.take (xs.length / 2) xs))
-      set b :=
-        FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q)
-          (mergeSort (List.drop (xs.length / 2) xs))
+      set a := FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q)
+          (mergeSort (List.take (xs.length / 2) xs)) with ha
+      set b := FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q)
+          (mergeSort (List.drop (xs.length / 2) xs)) with hb
       calc
         FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q)
             (merge
@@ -207,7 +193,7 @@ lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
                 (mergeSort (List.drop (xs.length / 2) xs)))) =
             FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q) (merge a b) := by
           simp [a, b]
-        _ = mergeNaive a b := hmerge a b
+        _ = mergeNaive a b := by apply hmerge a b
         _ = mergeNaive (mergeSortNaive (List.take (xs.length / 2) xs))
               (mergeSortNaive (List.drop (xs.length / 2) xs)) := by
           simp only [a, b, hleft', hright']
@@ -256,14 +242,13 @@ lemma mergeNaive_mem [LinearOrder α] (xs ys : List α) :
     intro h
     simp only [List.mem_cons] at h
     obtain h | h := h
-    · left
-      simp [h]
+    · simp [h]
     · simp only [rest] at h
       specialize ih1 h
       obtain ih | ih := ih1
       · simp only [List.mem_cons]
         tauto
-      · right; exact ih
+      · simp [ih]
   · expose_names
     intro h
     simp only [List.mem_cons, rest] at h
