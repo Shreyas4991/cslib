@@ -118,8 +118,7 @@ def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) SortOpsCost wher
   evalQuery
     | .cmpLE x y => decide (x ≤ y)
     | .insertHead x l => x :: l
-  cost q :=
-    match q with
+  cost
     | .cmpLE _ _ => ⟨1,0⟩
     | .insertHead _ _ => ⟨0,1⟩
 
