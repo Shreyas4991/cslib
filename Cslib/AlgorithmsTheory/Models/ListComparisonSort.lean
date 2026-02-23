@@ -43,20 +43,23 @@ structure SortOpsCost where
 @[simps, grind]
 instance zeroSortOps : Zero SortOpsCost := ⟨0,0⟩
 
-@[simps, grind]
-instance partialOrderSortOps : PartialOrder SortOpsCost where
+@[simps]
+instance : LE SortOpsCost where
   le soc₁ soc₂ := soc₁.compares ≤ soc₂.compares ∧ soc₁.inserts ≤ soc₂.inserts
+
+@[simps!, grind]
+instance partialOrderSortOps : PartialOrder SortOpsCost where
   le_refl := by
     intro c
-    simp only [le_refl, and_self]
+    simp
   le_trans a b c := by
-    simp only [and_imp]
+    simp only [le_def, and_imp]
     intro ab_comps ab_inserts bc_comps bc_inserts
     refine ⟨?_, ?_⟩
     all_goals solve_by_elim [Nat.le_trans]
   le_antisymm := by
     intro ⟨a_comps, a_inserts⟩ ⟨b_comps, b_inserts⟩
-    simp only [SortOpsCost.mk.injEq, and_imp]
+    simp only [le_def, SortOpsCost.mk.injEq, and_imp]
     intro ab_comps ab_inserts ba_comps ba_inserts
     refine ⟨?_, ?_⟩
     all_goals solve_by_elim[Nat.le_antisymm]
@@ -71,32 +74,29 @@ def add (soc₁ soc₂ : SortOpsCost) : SortOpsCost:=
 @[simps]
 def nsmul (n : ℕ) (soc : SortOpsCost) : SortOpsCost := ⟨n • soc.compares, n • soc.inserts⟩
 
+@[simps]
+instance AddSortOps : Add SortOpsCost where
+  add := add
 
 @[simps!]
 instance acsSortOpsCost : AddCommMonoid SortOpsCost where
-  add := add
   add_assoc a b c := by
-    simp only [HAdd.hAdd]
-    simp only [add, Nat.add_assoc]
+    simp only [AddSortOps_add, add, Nat.add_assoc]
   add_comm := by
     intro a b
-    simp only [HAdd.hAdd]
-    simp [add, Nat.add_comm]
+    simp only [AddSortOps_add, add, Nat.add_comm]
   zero_add := by
     intro ⟨c, i⟩
-    simp only [HAdd.hAdd, Add.add, add]
-    simp
+    simp only [AddSortOps_add, add, zeroSortOps_zero_compares, zero_add, zeroSortOps_zero_inserts]
+
   add_zero := by
     intro ⟨c, i⟩
-    simp only [HAdd.hAdd, add]
-    simp [Add.add]
-
+    simp [add]
   nsmul := nsmul
   nsmul_zero := by
     intro x
     rw [nsmul, zero_nsmul, zero_nsmul]
     rfl
-
   nsmul_succ := by
     intro n x
     rw [nsmul, succ_nsmul, succ_nsmul]
