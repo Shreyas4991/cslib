@@ -40,6 +40,9 @@ structure SortOpsCost where
   /-- `inserts` counts the number of calls to `insertHead` -/
   inserts : ℕ
 
+/--
+Injective mapping from a pair of ℕ to SortOpsCost
+-/
 def SortOpsCost.ofProd : ℕ × ℕ ↪ SortOpsCost where
   toFun pair := ⟨pair.1, pair.2⟩
   inj' := by
@@ -47,6 +50,9 @@ def SortOpsCost.ofProd : ℕ × ℕ ↪ SortOpsCost where
     intro (_,_) (_, _)
     simp only [mk.injEq, Prod.mk.injEq, imp_self]
 
+/--
+Injective mapping from SortOpsCost to a pair of ℕ
+-/
 def SortOpsCost.toProd : SortOpsCost ↪ ℕ × ℕ  where
   toFun pair := (pair.compares, pair.inserts)
   inj' := by
@@ -79,12 +85,12 @@ instance partialOrderSortOps : PartialOrder SortOpsCost := by
       all_goals grind only
 
 /-- Component-wise addition operation on `SortOpsCost` -/
-@[simps]
+@[inline, simps]
 def add (soc₁ soc₂ : SortOpsCost) : SortOpsCost:=
   ⟨soc₁.compares + soc₂.compares, soc₁.inserts + soc₂.inserts⟩
 
 /-- Component-wise scalar (natural number) multiplication operation on `SortOpsCost` -/
-@[simps]
+@[inline, simps]
 def nsmul (n : ℕ) (soc : SortOpsCost) : SortOpsCost := ⟨n • soc.compares, n • soc.inserts⟩
 
 @[simps]
@@ -130,19 +136,6 @@ lemma SortModel_cmpquery_iff [LinearOrder α] (x y : α) :
 lemma SortModel_insertHeadquery_iff [LinearOrder α] (l : List α) (x : α) :
     (sortModel α).evalQuery (insertHead x l) = x :: l := by
   simp [sortModel]
-
-
-lemma SortModel_addComponents (m₁ m₂ m₃ : SortOpsCost) :
-    m₁ + m₂ = m₃ ↔
-      m₁.compares + m₂.compares = m₃.compares ∧
-        m₁.inserts + m₂.inserts = m₃.inserts := by
-  aesop
-
-lemma SortModel_leComponents (m₁ m₂ : SortOpsCost) :
-    m₁ ≤ m₂ ↔
-      m₁.compares ≤ m₂.compares ∧
-        m₁.inserts ≤ m₂.inserts := by
-  simp only [LE.le]
 
 @[simp]
 lemma cost_cmpLT_compares [LinearOrder α] : ((sortModel α).2 (cmpLE head x)).compares = 1 := by
