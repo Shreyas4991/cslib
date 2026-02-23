@@ -40,6 +40,20 @@ structure SortOpsCost where
   /-- `inserts` counts the number of calls to `insertHead` -/
   inserts : ℕ
 
+def SortOpsCost.ofProd : ℕ × ℕ ↪ SortOpsCost where
+  toFun pair := ⟨pair.1, pair.2⟩
+  inj' := by
+    unfold Function.Injective
+    intro (_,_) (_, _)
+    simp only [mk.injEq, Prod.mk.injEq, imp_self]
+
+def SortOpsCost.toProd : SortOpsCost ↪ ℕ × ℕ  where
+  toFun pair := (pair.compares, pair.inserts)
+  inj' := by
+    unfold Function.Injective
+    intro ⟨_,_⟩ ⟨_,_⟩
+    simp only [mk.injEq, Prod.mk.injEq, imp_self]
+
 @[simps, grind]
 instance zeroSortOps : Zero SortOpsCost := ⟨0,0⟩
 
@@ -78,29 +92,19 @@ def nsmul (n : ℕ) (soc : SortOpsCost) : SortOpsCost := ⟨n • soc.compares, 
 instance AddSortOps : Add SortOpsCost where
   add := add
 
-@[simps!]
-instance acsSortOpsCost : AddCommMonoid SortOpsCost where
-  add_assoc a b c := by
-    simp only [AddSortOps_add, add, Nat.add_assoc]
-  add_comm := by
-    intro a b
-    simp only [AddSortOps_add, add, Nat.add_comm]
-  zero_add := by
-    intro ⟨c, i⟩
-    simp only [AddSortOps_add, add, zeroSortOps_zero_compares, zero_add, zeroSortOps_zero_inserts]
-  add_zero := by
-    intro ⟨c, i⟩
-    simp [add]
-  nsmul := nsmul
-  nsmul_zero := by
-    intro x
-    rw [nsmul, zero_nsmul, zero_nsmul]
-    rfl
-  nsmul_succ := by
-    intro n x
-    rw [nsmul, succ_nsmul, succ_nsmul]
-    rfl
+@[simps]
+instance SMulSortOps : SMul ℕ SortOpsCost where
+  smul := nsmul
 
+
+instance acsSortOpsCost : AddCommMonoid SortOpsCost := by
+  apply Function.Injective.addCommMonoid SortOpsCost.toProd
+  · exact SortOpsCost.toProd.inj'
+  · simp [SortOpsCost.toProd]
+  · intro ⟨xcomp, xins⟩ ⟨ycomp, yins⟩
+    simp [SortOpsCost.toProd, add]
+  · intro x n
+    simp [SortOpsCost.toProd]
 
 /--
 A model of `SortOps` that uses `SortOpsCost` as the cost type for operations.
