@@ -95,11 +95,11 @@ instance SMulSortOps : SMul ℕ SortOpsCost where
 instance acsSortOpsCost : AddCommMonoid SortOpsCost := by
   apply Function.Injective.addCommMonoid SortOpsCost.toProd
   · exact SortOpsCost.toProd.inj'
-  · simp [SortOpsCost.toProd]
+  · rfl
   · intro ⟨xcomp, xins⟩ ⟨ycomp, yins⟩
-    simp [SortOpsCost.toProd]
+    rfl
   · intro x n
-    simp [SortOpsCost.toProd]
+    rfl
 
 /--
 A model of `SortOps` that uses `SortOpsCost` as the cost type for operations.
