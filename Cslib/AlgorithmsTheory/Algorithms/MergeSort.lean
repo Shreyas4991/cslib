@@ -114,8 +114,9 @@ lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
   let P : Nat → Prop :=
     fun n => ∀ xs, xs.length = n → (mergeSort xs).eval (sortModelNat α) = mergeSortNaive xs
   have hP : P xs.length := by
-    refine Nat.strong_induction_on (n := xs.length) ?_
-    intro n ih xs hlen
+    induction hlen : xs.length using  Nat.strong_induction_on generalizing xs with
+    | h n ih =>
+    intro xs hlen
     by_cases hlt : xs.length < 2
     · nth_rw 1 [mergeSort, mergeSortNaive]
       simp [hlt, Prog.eval]
@@ -171,8 +172,9 @@ lemma mergeSortNaive_length [LinearOrder α] (xs : List α) :
   let P : Nat → Prop :=
     fun n => ∀ ys : List α, ys.length = n → (mergeSortNaive ys).length = ys.length
   have hP : P xs.length := by
-    refine Nat.strong_induction_on xs.length ?_
-    intro n ih ys hlen
+    induction hlen : xs.length using  Nat.strong_induction_on generalizing xs with
+    | h n ih =>
+    intro ys hlen
     by_cases hlt : ys.length < 2
     · simp [mergeSortNaive, hlt]
     · have hge : 2 ≤ ys.length := le_of_not_gt hlt
