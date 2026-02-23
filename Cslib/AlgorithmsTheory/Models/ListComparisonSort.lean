@@ -61,7 +61,7 @@ def SortOpsCost.toProd : SortOpsCost ↪ ℕ × ℕ  where
     simp only [mk.injEq, Prod.mk.injEq, imp_self]
 
 @[simps, grind]
-instance zeroSortOps : Zero SortOpsCost := ⟨0,0⟩
+instance : Zero SortOpsCost := ⟨0,0⟩
 
 @[simps]
 instance : LE SortOpsCost where
