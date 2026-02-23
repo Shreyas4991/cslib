@@ -223,7 +223,7 @@ lemma liftM_bind [LawfulMonad m]
     rw [FreeM.bind, liftM_liftBind, liftM_liftBind, bind_assoc]
     simp_rw [ih]
 
-instance {Q α} : Coe (Q α) (FreeM Q α) where
+instance {Q α} : CoeOut (Q α) (FreeM Q α) where
   coe := FreeM.lift
 
 /--

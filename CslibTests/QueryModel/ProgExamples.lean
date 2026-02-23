@@ -25,13 +25,13 @@ inductive Arith (α : Type) : Type → Type where
   | zero : Arith α α
   | one : Arith α α
 
-def RatArithQuery_NatCost : Model (Arith ℚ) ℕ where
+def Arith.natCost [Ring α] : Model (Arith α) ℕ where
   evalQuery
     | .add x y => x + y
     | .mul x y => x * y
     | .neg x =>  -x
-    | .zero => (0 : ℚ)
-    | .one => (1 : ℚ)
+    | .zero => 0
+    | .one => 1
   cost _ := 1
 
 open Arith in

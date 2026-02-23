@@ -36,9 +36,8 @@ and complexity of algorithms in lean. To specify an algorithm, one must:
   the index type depends. This way, any instance parameters of `α` can be used easily
   for the output types. The signatures of `Model.evalQuery` and `Model.Cost` are fixed.
   So you can't supply instances for the index type there.
-2. Define one or more cost types `C` and instances of `PureCosts` for this cost type.
-3. Define a `Model Q C` type instance
-4. Write your algorithm as a monadic program in `Prog Q α`. With sufficient type anotations
+2. Define a `Model Q C` type instance
+3. Write your algorithm as a monadic program in `Prog Q α`. With sufficient type anotations
   each query `q : Q` is automatically lifted into `Prog Q α`.
 ## Tags
 
@@ -53,8 +52,7 @@ namespace Algorithms
 A model type for a query type `QType` and cost type `Cost`. It consists of
 two fields, which respectively define the evaluation and cost of a query.
 -/
-structure Model (QType : Type u → Type u) (Cost : Type)
-  [AddCommMonoid Cost] where
+structure Model (QType : Type u → Type u) (Cost : Type) [AddCommMonoid Cost] where
   /-- Evaluates a query `q : Q ι` to return a result of type `ι` -/
   evalQuery : QType ι → ι
   /-- Counts the operational cost of a query `q : Q ι` to return a result of type `Cost`.
