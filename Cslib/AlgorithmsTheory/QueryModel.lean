@@ -78,7 +78,7 @@ The evaluation function of a program `P : Prog Q α` given a model `M : Model Q 
 -/
 @[simp, grind]
 def Prog.eval [AddCommMonoid Cost]
-  (P : Prog Q α) (M : Model Q Cost) : α :=
+    (P : Prog Q α) (M : Model Q Cost) : α :=
   Id.run <| P.liftM fun x => pure (M.evalQuery x)
 
 /--
@@ -87,25 +87,25 @@ The most common use case of this function is to compute time-complexity, hence t
 -/
 @[simp, grind]
 def Prog.time [AddCommMonoid Cost]
-  (P : Prog Q α) (M : Model Q Cost) : Cost :=
+    (P : Prog Q α) (M : Model Q Cost) : Cost :=
   (P.liftM fun x => do Lean.TimeM.tick (M.cost x); return (M.evalQuery x)).time
 
 @[grind =]
 lemma Prog.time.bind_pure [AddCommMonoid Cost] (M : Model Q Cost) :
-  Prog.time (op >>= FreeM.pure) M = (Prog.time op M) := by
+    Prog.time (op >>= FreeM.pure) M = (Prog.time op M) := by
   simp only [bind, FreeM.bind_pure]
 
 @[grind =]
 lemma Prog.time.pure_bind
-  [AddCommMonoid Cost] (M : Model Q Cost) :
-  Prog.time (FreeM.pure x >>= m) M = (m x).time M := by
+    [AddCommMonoid Cost] (M : Model Q Cost) :
+    Prog.time (FreeM.pure x >>= m) M = (m x).time M := by
   rfl
 
 @[grind =]
 lemma Prog.time.bind [AddCommMonoid Cost] (M : Model Q Cost)
-  (op : Prog Q ι) (cont : ι → Prog Q α) :
-  Prog.time (op >>= cont) M =
-    (Prog.time op M) + (Prog.time (cont (Prog.eval op M)) M):= by
+    (op : Prog Q ι) (cont : ι → Prog Q α) :
+    Prog.time (op >>= cont) M =
+      (Prog.time op M) + (Prog.time (cont (Prog.eval op M)) M):= by
   simp only [FreeM.bind_eq_bind, eval]
   induction op with
   | pure a =>
@@ -118,9 +118,9 @@ lemma Prog.time.bind [AddCommMonoid Cost] (M : Model Q Cost)
 
 @[simp, grind =]
 lemma Prog.time.liftBind [AddCommMonoid Cost] (M : Model Q Cost)
-  (op : Q ι) (cont : ι → Prog Q α) :
-  Prog.time (.liftBind op cont) M =
-    (Prog.time (FreeM.lift op) M) + (Prog.time (cont (M.evalQuery op)) M):= by
+    (op : Q ι) (cont : ι → Prog Q α) :
+    Prog.time (.liftBind op cont) M =
+      (Prog.time (FreeM.lift op) M) + (Prog.time (cont (M.evalQuery op)) M):= by
   simp [time, FreeM.lift_def]
 
 section Reduction
@@ -137,8 +137,8 @@ structure Reduction (Q₁ Q₂ : Type u → Type u) where
 `Prog.reduceProg` takes a reduction structure from a query `Q₁` to `Q₂` and extends its
 `reduce` function to programs on the query type `Q₁`
 -/
-def Prog.reduceProg (P : Prog Q₁ α) (red : Reduction Q₁ Q₂) : Prog Q₂ α :=
-    P.liftM red.reduce
+abbrev Prog.reduceProg (P : Prog Q₁ α) (red : Reduction Q₁ Q₂) : Prog Q₂ α :=
+  P.liftM red.reduce
 
 
 end Reduction
