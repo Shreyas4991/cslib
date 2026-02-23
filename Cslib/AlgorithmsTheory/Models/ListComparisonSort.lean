@@ -61,23 +61,22 @@ instance zeroSortOps : Zero SortOpsCost := ⟨0,0⟩
 instance : LE SortOpsCost where
   le soc₁ soc₂ := soc₁.compares ≤ soc₂.compares ∧ soc₁.inserts ≤ soc₂.inserts
 
-@[simps!, grind]
-instance partialOrderSortOps : PartialOrder SortOpsCost where
-  le_refl := by
-    intro c
-    simp
-  le_trans a b c := by
-    simp only [le_def, and_imp]
-    intro ab_comps ab_inserts bc_comps bc_inserts
-    refine ⟨?_, ?_⟩
-    all_goals solve_by_elim [Nat.le_trans]
-  le_antisymm := by
-    intro ⟨a_comps, a_inserts⟩ ⟨b_comps, b_inserts⟩
-    simp only [le_def, SortOpsCost.mk.injEq, and_imp]
-    intro ab_comps ab_inserts ba_comps ba_inserts
-    refine ⟨?_, ?_⟩
-    all_goals solve_by_elim[Nat.le_antisymm]
+@[simps]
+instance : LT SortOpsCost where
+  lt soc₁ soc₂ := soc₁ ≤ soc₂ ∧ (soc₁.compares < soc₂.compares ∨ soc₁.inserts < soc₂.inserts)
 
+@[simps!, grind]
+instance partialOrderSortOps : PartialOrder SortOpsCost := by
+  apply Function.Injective.partialOrder SortOpsCost.toProd
+  · exact SortOpsCost.toProd.inj'
+  · simp [SortOpsCost.toProd]
+  · intro x y
+    simp only [SortOpsCost.toProd, Function.Embedding.coeFn_mk, Prod.mk_lt_mk, lt_def, le_def]
+    refine ⟨?_, ?_⟩
+    · rintro (⟨h_compares, h_inserts⟩ | ⟨h_compares, h_inserts⟩)
+      all_goals grind only
+    · rintro ⟨h_leq, (h | h)⟩
+      all_goals grind only
 
 /-- Component-wise addition operation on `SortOpsCost` -/
 @[simps]
@@ -144,6 +143,25 @@ lemma SortModel_leComponents (m₁ m₂ : SortOpsCost) :
       m₁.compares ≤ m₂.compares ∧
         m₁.inserts ≤ m₂.inserts := by
   simp only [LE.le]
+
+@[simp]
+lemma cost_cmpLT_compares [LinearOrder α] : ((sortModel α).2 (cmpLE head x)).compares = 1 := by
+  simp [sortModel]
+
+@[simp]
+lemma cost_cmpLT_inserts [LinearOrder α] :
+    ((sortModel α).2 (cmpLE head x)).inserts = 0 := by
+  simp [sortModel]
+
+@[simp]
+lemma cost_insertHead_compares [LinearOrder α] :
+    ((sortModel α).2 (insertHead x l)).compares = 0 := by
+  simp [sortModel]
+
+@[simp]
+lemma cost_insertHead_inserts [LinearOrder α] :
+    ((sortModel α).2 (insertHead x l)).inserts = 1 := by
+  simp [sortModel]
 
 end SortOpsCostModel
 

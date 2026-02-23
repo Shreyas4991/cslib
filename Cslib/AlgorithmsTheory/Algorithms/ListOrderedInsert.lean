@@ -106,25 +106,6 @@ lemma bind_inserts {α} (x tail head) [LinearOrder α] :
   simp only [Add.add] at h
   exact h
 
-@[simp]
-lemma cost_cmpLT_compares [LinearOrder α] : ((sortModel α).2 (cmpLE head x)).compares = 1 := by
-  simp [sortModel]
-
-@[simp]
-lemma cost_cmpLT_inserts [LinearOrder α] :
-    ((sortModel α).2 (cmpLE head x)).inserts = 0 := by
-  simp [sortModel]
-
-@[simp]
-lemma cost_insertHead_compares [LinearOrder α] :
-    ((sortModel α).2 (insertHead x l)).compares = 0 := by
-  simp [sortModel]
-
-@[simp]
-lemma cost_insertHead_inserts [LinearOrder α] :
-    ((sortModel α).2 (insertHead x l)).inserts = 1 := by
-  simp [sortModel]
-
 theorem insertOrd_complexity_upper_bound [LinearOrder α] :
     ∀ (l : List α) (x : α),
       (insertOrd x l).time (sortModel α) ≤ ⟨l.length, l.length + 1⟩ := by
@@ -135,13 +116,12 @@ theorem insertOrd_complexity_upper_bound [LinearOrder α] :
   | cons head tail ih =>
       obtain ⟨ih_compares, ih_inserts⟩ := ih
       simp only [insertOrd, FreeM.lift_def, FreeM.bind_eq_bind, FreeM.liftBind_bind,
-        FreeM.pure_bind, time.eq_2, List.length_cons, partialOrderSortOps_le,
-        acsSortOpsCost_add_compares, cost_cmpLT_compares, acsSortOpsCost_add_inserts,
-        cost_cmpLT_inserts, zero_add]
+        FreeM.pure_bind, time.eq_2, List.length_cons, partialOrderSortOps_le]
       split_ifs with h_head
       · constructor <;> simp_all
       · constructor
-        · simp_all only [Bool.not_eq_true, bind_compares]
+        · simp_all only [Bool.not_eq_true, AddSortOps_add, add_compares, cost_cmpLT_compares,
+          bind_compares]
           grind
         · simp_all
 
