@@ -92,7 +92,7 @@ instance AddSortOps : Add SortOpsCost where
 instance SMulSortOps : SMul ℕ SortOpsCost where
   smul (n : ℕ) (soc : SortOpsCost) : SortOpsCost := ⟨n • soc.compares, n • soc.inserts⟩
 
-instance acsSortOpsCost : AddCommMonoid SortOpsCost := by
+instance : AddCommMonoid SortOpsCost := by
   apply Function.Injective.addCommMonoid SortOpsCost.toProd
   · exact SortOpsCost.toProd.inj'
   · rfl
