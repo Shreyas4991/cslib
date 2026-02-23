@@ -62,12 +62,12 @@ lemma merge_timeComplexity [LinearOrder α] (x y : List α) :
       FreeM.liftM_liftBind, bind_assoc, Lean.TimeM.time_bind, Lean.TimeM.time_tick]
     split_ifs with hxy
     · simp_all only [FreeM.liftM_bind, FreeM.liftM_pure, bind_pure_comp, Lean.TimeM.time_map]
-      have h := Nat.add_le_add_left ih2 1
-      simpa [sortModelNat, Lean.TimeM.pure, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h
+      simpa [sortModelNat, Lean.TimeM.pure, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+        using (Nat.add_le_add_left ih2 1)
     · simp_all only [Bool.not_eq_true, FreeM.liftM_bind, FreeM.liftM_pure, bind_pure_comp,
       Lean.TimeM.time_map]
-      have h := Nat.add_le_add_left ih1 1
-      simpa [sortModelNat, Lean.TimeM.pure, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h
+      simpa [sortModelNat, Lean.TimeM.pure, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+        using (Nat.add_le_add_left ih1 1)
 
 lemma merge_is_mergeNaive [LinearOrder α] (x y : List α) :
     (merge x y).eval (sortModelNat α) = mergeNaive x y := by
