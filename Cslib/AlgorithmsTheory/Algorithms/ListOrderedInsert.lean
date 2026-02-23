@@ -73,39 +73,6 @@ lemma insertOrd_length [LinearOrder α] (x : α) (l : List α) :
       · simp [insertOrd, sortModel, h_head]
         simpa [Prog.eval] using ih
 
-@[simp]
-lemma bind_compares {α} (x tail head) [LinearOrder α] :
-    (Prog.time
-        (FreeM.bind (insertOrd x tail)
-          (fun res => FreeM.liftBind (insertHead head res) FreeM.pure))
-        (sortModel α)).compares =
-      (Prog.time (insertOrd x tail) (sortModel α)).compares := by
-  have h := congrArg SortOpsCost.compares
-    (Prog.time.bind (M := sortModel α)
-      (op := insertOrd x tail)
-      (cont := fun res => FreeM.liftBind (insertHead head res) FreeM.pure))
-  simp only [time, sortModel, bind_pure_comp,
-    FreeM.bind_eq_bind, FreeM.liftM_bind, FreeM.liftM_liftBind, FreeM.liftM_pure, bind_pure,
-    Lean.TimeM.time_bind, HAdd.hAdd, Lean.TimeM.time_map, eval] at h
-  simp_all only [time, sortModel, bind_pure_comp,
-    FreeM.liftM_bind, FreeM.liftM_liftBind, FreeM.liftM_pure, bind_pure, Lean.TimeM.time_bind,
-    Lean.TimeM.time_map, AddSortOps_add, add_compares, Nat.add_eq_left]
-  rfl
-
-@[simp]
-lemma bind_inserts {α} (x tail head) [LinearOrder α] :
-    (Prog.time
-        (FreeM.bind (insertOrd x tail)
-          (fun res => FreeM.liftBind (insertHead head res) FreeM.pure))
-        (sortModel α)).inserts =
-      (Prog.time (insertOrd x tail) (sortModel α)).inserts + 1 := by
-  have h := congrArg SortOpsCost.inserts
-    (Prog.time.bind (M := sortModel α)
-      (op := insertOrd x tail)
-      (cont := fun res => FreeM.liftBind (insertHead head res) FreeM.pure))
-  simp only [sortModel, time, eval] at h
-  exact h
-
 theorem insertOrd_complexity_upper_bound [LinearOrder α] :
     ∀ (l : List α) (x : α),
       (insertOrd x l).time (sortModel α) ≤ ⟨l.length, l.length + 1⟩ := by

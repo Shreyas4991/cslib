@@ -62,7 +62,11 @@ structure Model (QType : Type u → Type u) (Cost : Type)
   including but not limited to time complexity -/
   cost : QType ι → Cost
 
+
 open Cslib.Algorithms.Lean in
+/--
+lift `Model.cost` to `TimeM Cost ι`
+-/
 abbrev Model.timeQuery [AddCommMonoid Cost]
     (M : Model Q Cost) (x : Q ι) : TimeM Cost ι := do
   TimeM.tick (M.cost x); return (M.evalQuery x)
@@ -116,12 +120,13 @@ lemma Prog.time.bind [AddCommMonoid Cost] (M : Model Q Cost)
         FreeM.liftBind_bind, FreeM.liftM_liftBind, bind_map_left, LawfulMonad.pure_bind]
       rw [add_assoc]
 
-@[simp, grind =]
+@[grind =]
 lemma Prog.time.liftBind [AddCommMonoid Cost] (M : Model Q Cost)
     (op : Q ι) (cont : ι → Prog Q α) :
     Prog.time (.liftBind op cont) M =
       (Prog.time (FreeM.lift op) M) + (Prog.time (cont (M.evalQuery op)) M):= by
-  simp [time, FreeM.lift_def]
+  simp only [time, bind_pure_comp, FreeM.liftM_liftBind, bind_map_left, Lean.TimeM.time_bind,
+    Lean.TimeM.time_tick, FreeM.lift_def, FreeM.liftM_pure, _root_.bind_pure, Lean.TimeM.time_map]
 
 section Reduction
 
