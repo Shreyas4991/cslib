@@ -64,9 +64,7 @@ structure Model (QType : Type u → Type u) (Cost : Type)
 
 
 open Cslib.Algorithms.Lean in
-/--
-lift `Model.cost` to `TimeM Cost ι`
--/
+/-- lift `Model.cost` to `TimeM Cost ι` -/
 abbrev Model.timeQuery [AddCommMonoid Cost]
     (M : Model Q Cost) (x : Q ι) : TimeM Cost ι := do
   TimeM.tick (M.cost x); return (M.evalQuery x)
