@@ -8,7 +8,7 @@ module
 
 public import Mathlib
 public import Cslib.Foundations.Control.Monad.Free.Fold
-public import Batteries
+public import Cslib.AlgorithmsTheory.Lean.TimeM
 
 @[expose] public section
 
@@ -45,7 +45,9 @@ and complexity of algorithms in lean. To specify an algorithm, one must:
 query model, free monad, time complexity, Prog
 -/
 
-namespace Cslib.Algorithms
+namespace Cslib
+
+namespace Algorithms
 
 /--
 A model type for a query type `QType` and cost type `Cost`. It consists of
@@ -59,6 +61,11 @@ structure Model (QType : Type u → Type u) (Cost : Type)
   The cost could represent any desired complexity measure,
   including but not limited to time complexity -/
   cost : QType ι → Cost
+
+open Cslib.Algorithms.Lean in
+abbrev Model.timeQuery [AddCommMonoid Cost]
+    (M : Model Q Cost) (x : Q ι) : TimeM Cost ι := do
+  TimeM.tick (M.cost x); return (M.evalQuery x)
 
 /--
 A program is defined as a Free Monad over a Query type `Q` which operates on a base type `α`
