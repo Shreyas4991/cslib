@@ -52,7 +52,7 @@ inductive VecSortOps (α : Type) : Type → Type  where
   | read : (a : Vector α n) → (i : Fin n) → VecSortOps α α
   | push : (a : Vector α n) → (elem : α) → VecSortOps α (Vector α (n + 1))
 
-def VecSort_WorstCase [DecidableEq α] : Model (VecSortOps α) ℕ where
+def VecSortOps.worstCase [DecidableEq α] : Model (VecSortOps α) ℕ where
   evalQuery
     | .write v i x => v.set i x
     | .cmp l i j =>  l[i] == l[j]
@@ -66,7 +66,7 @@ def VecSort_WorstCase [DecidableEq α] : Model (VecSortOps α) ℕ where
     | .swap l i j => 1
     | .push a elem => 2 -- amortized over array insertion and resizing by doubling
 
-def VecSort_CmpSwap [DecidableEq α] : Model (VecSortOps α) ℕ where
+def VecSortOps.cmpSwap [DecidableEq α] : Model (VecSortOps α) ℕ where
   evalQuery
     | .write v i x => v.set i x
     | .cmp l i j =>  l[i] == l[j]
@@ -89,7 +89,7 @@ def simpleExample (v : Vector ℤ n) (i k : Fin n)
 inductive VecSearch (α : Type) : Type → Type  where
   | compare (a : Vector α n) (i : ℕ) (val : α) : VecSearch α Bool
 
-def VecSearch_Nat [DecidableEq α] : Model (VecSearch α) ℕ where
+def VecSearch.nat [DecidableEq α] : Model (VecSearch α) ℕ where
   evalQuery
     | .compare l i x =>  l[i]? == some x
   cost
