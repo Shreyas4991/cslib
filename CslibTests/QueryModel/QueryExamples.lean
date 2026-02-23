@@ -28,7 +28,7 @@ inductive ListOps (α : Type) : Type → Type  where
   | find (l : List α) (elem : α) : ListOps α ℕ
   | write (l : List α) (i : Fin l.length) (x : α) : ListOps α (List α)
 
-def List_LinSearch_WorstCase [DecidableEq α] : Model (ListOps α) ℕ where
+def ListOps.linSearchWorstCase [DecidableEq α] : Model (ListOps α) ℕ where
   evalQuery
     | .write l i x => l.set i x
     | .find l elem =>  l.findIdx (· = elem)
@@ -38,7 +38,7 @@ def List_LinSearch_WorstCase [DecidableEq α] : Model (ListOps α) ℕ where
     | .find l elem =>  l.length
     | .get l i => l.length
 
-def List_BinSearch_WorstCase [BEq α] : Model (ListOps α) ℕ where
+def ListOps.binSearchWorstCase [BEq α] : Model (ListOps α) ℕ where
   evalQuery
     | .write l i x => l.set i x
     | .get l i => l[i]
@@ -55,7 +55,7 @@ inductive ArrayOps (α : Type) : Type → Type  where
   | write : (l : Array α) → (i : Fin l.size) →  (x : α) → ArrayOps α (Array α)
 
 
-def Array_BinSearch_WorstCase [BEq α] : Model (ArrayOps α) ℕ where
+def ArrayOps.binSearchWorstCase [BEq α] : Model (ArrayOps α) ℕ where
   evalQuery
     | .write l i x => l.set i x
     | .get l i => l[i]
