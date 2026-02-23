@@ -84,30 +84,20 @@ instance partialOrderSortOps : PartialOrder SortOpsCost := by
     · rintro ⟨h_leq, (h | h)⟩
       all_goals grind only
 
-/-- Component-wise addition operation on `SortOpsCost` -/
-@[inline, simps]
-def add (soc₁ soc₂ : SortOpsCost) : SortOpsCost:=
-  ⟨soc₁.compares + soc₂.compares, soc₁.inserts + soc₂.inserts⟩
-
-/-- Component-wise scalar (natural number) multiplication operation on `SortOpsCost` -/
-@[inline, simps]
-def nsmul (n : ℕ) (soc : SortOpsCost) : SortOpsCost := ⟨n • soc.compares, n • soc.inserts⟩
-
 @[simps]
 instance AddSortOps : Add SortOpsCost where
-  add := add
+  add (soc₁ soc₂ : SortOpsCost) :=  ⟨soc₁.compares + soc₂.compares, soc₁.inserts + soc₂.inserts⟩
 
 @[simps]
 instance SMulSortOps : SMul ℕ SortOpsCost where
-  smul := nsmul
-
+  smul (n : ℕ) (soc : SortOpsCost) : SortOpsCost := ⟨n • soc.compares, n • soc.inserts⟩
 
 instance acsSortOpsCost : AddCommMonoid SortOpsCost := by
   apply Function.Injective.addCommMonoid SortOpsCost.toProd
   · exact SortOpsCost.toProd.inj'
   · simp [SortOpsCost.toProd]
   · intro ⟨xcomp, xins⟩ ⟨ycomp, yins⟩
-    simp [SortOpsCost.toProd, add]
+    simp [SortOpsCost.toProd]
   · intro x n
     simp [SortOpsCost.toProd]
 
