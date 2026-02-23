@@ -145,8 +145,7 @@ lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
           FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q) (merge a b) =
             mergeNaive a b := by
         simpa [Prog.eval] using (merge_is_mergeNaive (α := α) a b)
-      nth_rw 1 [mergeSort]
-      nth_rw 1 [mergeSortNaive]
+      nth_rw 1 [mergeSort, mergeSortNaive]
       simp only [hlt, if_false, Prog.eval, bind, FreeM.liftM_bind]
       set a := FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q)
           (mergeSort (List.take (xs.length / 2) xs)) with ha
