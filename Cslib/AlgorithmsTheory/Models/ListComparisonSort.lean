@@ -88,7 +88,6 @@ instance acsSortOpsCost : AddCommMonoid SortOpsCost where
   zero_add := by
     intro ⟨c, i⟩
     simp only [AddSortOps_add, add, zeroSortOps_zero_compares, zero_add, zeroSortOps_zero_inserts]
-
   add_zero := by
     intro ⟨c, i⟩
     simp [add]
