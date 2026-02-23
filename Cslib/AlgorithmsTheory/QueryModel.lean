@@ -88,7 +88,7 @@ The most common use case of this function is to compute time-complexity, hence t
 @[simp, grind]
 def Prog.time [AddCommMonoid Cost]
     (P : Prog Q α) (M : Model Q Cost) : Cost :=
-  (P.liftM fun x => do Lean.TimeM.tick (M.cost x); return (M.evalQuery x)).time
+  (P.liftM M.timeQuery).time
 
 @[grind =]
 lemma Prog.time.bind_pure [AddCommMonoid Cost] (M : Model Q Cost) :
