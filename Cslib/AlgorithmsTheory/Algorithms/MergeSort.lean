@@ -8,33 +8,12 @@ module
 
 public import Cslib.AlgorithmsTheory.QueryModel
 public import Cslib.AlgorithmsTheory.Models.ListComparisonSort
-
+import all Init.Data.List.Sort.Basic
 @[expose] public section
 
 namespace Cslib.Algorithms
 
 open SortOps
-
-
-/--
-The vanilla-lean version of `merge` that merges two lists. When the two lists
-are sorted, so is the merged list.
--/
-def mergeNaive [LinearOrder α] (x y : List α) : List α :=
-  match x,y with
-  | [], ys => ys
-  | xs, [] => xs
-  | x :: xs', y :: ys' =>
-      if x ≤ y then
-        let rest := mergeNaive xs' (y :: ys')
-        x :: rest
-      else
-        let rest := mergeNaive (x :: xs') ys'
-        y :: rest
-
-lemma mergeNaive_length [LinearOrder α] (x y : List α) :
-    (mergeNaive x y).length = x.length + y.length := by
-  fun_induction mergeNaive <;> try grind
 
 /-- Merge two sorted lists using comparisons in the query monad. -/
 @[simp]
@@ -69,23 +48,23 @@ lemma merge_timeComplexity [LinearOrder α] (x y : List α) :
       simpa [sortModelNat, Lean.TimeM.pure, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
         using (Nat.add_le_add_left ih1 1)
 
-lemma merge_is_mergeNaive [LinearOrder α] (x y : List α) :
-    (merge x y).eval (sortModelNat α) = mergeNaive x y := by
-  fun_induction mergeNaive
+lemma merge_eval_eq_list_merge [LinearOrder α] (x y : List α) :
+    (merge x y).eval (sortModelNat α) = List.merge x y := by
+  fun_induction List.merge
   · simp [merge]
   · simp [merge]
   · expose_names
-    simp_all [Prog.eval,  merge, rest, sortModelNat]
+    simp_all [Prog.eval,  merge, sortModelNat]
   · expose_names
-    simp_all only [not_le, Prog.eval, merge, FreeM.lift_def, FreeM.pure_eq_pure, FreeM.bind_eq_bind,
-      FreeM.liftBind_bind, FreeM.pure_bind, FreeM.liftM_liftBind, sortModelNat_eval_false,
-      pure_bind, Bool.false_eq_true, ↓reduceIte, FreeM.liftM_bind, FreeM.liftM_pure, bind_pure_comp,
-      Id.run_map, rest]
+    simp_all only [decide_eq_true_eq, not_le, Prog.eval, merge, FreeM.lift_def, FreeM.pure_eq_pure,
+      FreeM.bind_eq_bind, FreeM.liftBind_bind, FreeM.pure_bind, FreeM.liftM_liftBind,
+      sortModelNat_eval_false, pure_bind, Bool.false_eq_true, ↓reduceIte, FreeM.liftM_bind,
+      FreeM.liftM_pure, bind_pure_comp, Id.run_map]
 
 lemma merge_length [LinearOrder α] (x y : List α) :
     ((merge x y).eval (sortModelNat α)).length = x.length + y.length := by
-  rw [merge_is_mergeNaive]
-  apply mergeNaive_length
+  rw [merge_eval_eq_list_merge]
+  apply List.length_merge
 
 /--
 The `mergeSort` algorithm in the `SortOps` query model. It sorts the input list
@@ -109,7 +88,7 @@ def mergeSortNaive [LinearOrder α] (xs : List α) : List α :=
   else
     let sortedLeft  := mergeSortNaive (xs.take (xs.length/2))
     let sortedRight := mergeSortNaive (xs.drop (xs.length/2))
-    mergeNaive sortedLeft sortedRight
+    List.merge sortedLeft sortedRight
 
 lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
     (mergeSort xs).eval (sortModelNat α) = mergeSortNaive xs := by
@@ -146,8 +125,8 @@ lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
         simpa [right, half, Prog.eval] using hright
       have hmerge (a b : List α) :
           Id.run (FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q) (merge a b)) =
-            mergeNaive a b := by
-        simpa [Prog.eval] using (merge_is_mergeNaive (α := α) a b)
+            List.merge a b := by
+        simpa [Prog.eval] using (merge_eval_eq_list_merge (α := α) a b)
       nth_rw 1 [mergeSort, mergeSortNaive]
       simp only [hlt, if_false, Prog.eval, bind, FreeM.liftM_bind]
       set a := Id.run <| FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q)
@@ -163,10 +142,11 @@ lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
                 (mergeSort (List.drop (xs.length / 2) xs))))) =
             Id.run (FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q) (merge a b)) := by
           simp [a, b]
-        _ = mergeNaive a b := by apply hmerge a b
-        _ = mergeNaive (mergeSortNaive (List.take (xs.length / 2) xs))
+        _ = List.merge a b := by apply hmerge a b
+        _ = List.merge (mergeSortNaive (List.take (xs.length / 2) xs))
               (mergeSortNaive (List.drop (xs.length / 2) xs)) := by
-          simp only [a, b, hleft', hright']
+          simp only [hleft', hright', a, b]
+      rfl
   exact hP xs rfl
 
 lemma mergeSortNaive_length [LinearOrder α] (xs : List α) :
@@ -194,7 +174,7 @@ lemma mergeSortNaive_length [LinearOrder α] (xs : List α) :
             (ys.drop (ys.length / 2)).length := by grind
       have hdiv_le : ys.length / 2 ≤ ys.length := Nat.div_le_self _ _
       rw [mergeSortNaive]
-      simp [hlt, mergeNaive_length, hleft, hright, List.length_take, List.length_drop,
+      simp [hlt, List.length_merge, hleft, hright, List.length_take, List.length_drop,
         Nat.min_eq_left hdiv_le, Nat.add_sub_of_le hdiv_le]
   exact hP xs rfl
 
@@ -203,85 +183,11 @@ lemma mergeSort_length [LinearOrder α] (xs : List α) :
   rw [mergeSort_is_mergeSortNaive]
   apply mergeSortNaive_length
 
-
-lemma mergeNaive_mem [LinearOrder α] (xs ys : List α) :
-    x ∈ mergeNaive xs ys → x ∈ xs ∨ x ∈ ys := by
-  fun_induction mergeNaive
-  · simp
-  · simp
-  · expose_names
-    intro h
-    simp only [List.mem_cons] at h
-    obtain h | h := h
-    · simp [h]
-    · simp only [rest] at h
-      specialize ih1 h
-      obtain ih | ih := ih1
-      · simp only [List.mem_cons]
-        tauto
-      · simp [ih]
-  · expose_names
-    intro h
-    simp only [List.mem_cons, rest] at h
-    obtain h | h := h
-    · simp only [List.mem_cons]
-      tauto
-    · specialize ih1 h
-      tauto
-
-lemma mergeNaive_sorted_sorted [LinearOrder α] (xs ys : List α)
-    (hxs_mono : xs.Pairwise (· ≤ ·)) (hys_mono : ys.Pairwise (· ≤ ·)) :
-    (mergeNaive xs ys).Pairwise (· ≤ ·) := by
-  induction xs generalizing ys with
-  | nil =>
-      simp_all [mergeNaive]
-  | cons xhead xtail x_ih =>
-      induction ys with
-      | nil =>
-          simp_all [mergeNaive]
-      | cons yhead ytail y_ih =>
-          simp only [mergeNaive]
-          by_cases hxy : xhead ≤ yhead
-          · simp only [hxy, ↓reduceIte, List.pairwise_cons]
-            refine ⟨?_, ?_⟩
-            · intro a a_mem
-              apply mergeNaive_mem at a_mem
-              simp_all only [List.pairwise_cons, List.mem_cons, forall_const]
-              obtain ⟨left, right⟩ := hxs_mono
-              obtain ⟨left_1, right_1⟩ := hys_mono
-              cases a_mem with
-              | inl h => simp_all only
-              | inr h_1 =>
-                cases h_1 with
-                | inl h =>
-                  subst h
-                  grind
-                | inr h_2 => grind
-            · simp_all
-          · simp only [hxy, ↓reduceIte, List.pairwise_cons]
-            refine ⟨?_, ?_⟩
-            · intro a a_mem
-              apply mergeNaive_mem at a_mem
-              simp_all only [List.pairwise_cons, not_le, List.mem_cons, forall_const]
-              obtain ⟨left, right⟩ := hxs_mono
-              obtain ⟨left_1, right_1⟩ := hys_mono
-              cases a_mem with
-              | inl h =>
-                cases h with
-                | inl h_1 =>
-                  subst h_1
-                  grind
-                | inr h_2 => grind
-              | inr h_1 => simp_all only
-            · simp_all
-
-
 lemma merge_sorted_sorted [LinearOrder α] (xs ys : List α)
     (hxs_mono : xs.Pairwise (· ≤ ·)) (hys_mono : ys.Pairwise (· ≤ ·)) :
     ((merge xs ys).eval (sortModelNat α)).Pairwise (· ≤ ·) := by
-  rw [merge_is_mergeNaive]
-  apply mergeNaive_sorted_sorted
-  all_goals assumption
+  rw [merge_eval_eq_list_merge]
+  grind [List.pairwise_merge]
 
 lemma mergeSortNaive_sorted [LinearOrder α] (xs : List α) :
     (mergeSortNaive xs).Pairwise (· ≤ ·) := by
@@ -312,9 +218,8 @@ lemma mergeSortNaive_sorted [LinearOrder α] (xs : List α) :
       have hleft : (mergeSortNaive (ys.take (ys.length / 2))).Pairwise (· ≤ ·) := by grind
       have hright : (mergeSortNaive (ys.drop (ys.length / 2))).Pairwise (· ≤ ·) := by grind
       rw [mergeSortNaive]
-      simpa [hlt] using mergeNaive_sorted_sorted
-        (mergeSortNaive (ys.take (ys.length / 2)))
-        (mergeSortNaive (ys.drop (ys.length / 2))) hleft hright
+      simp only [hlt, ↓reduceIte]
+      grind [List.pairwise_merge]
   exact hP xs rfl
 
 theorem mergeSort_sorted [LinearOrder α] (xs : List α) :
