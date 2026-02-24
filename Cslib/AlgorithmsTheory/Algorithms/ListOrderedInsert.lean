@@ -33,41 +33,22 @@ def insertOrd (x : α) (l : List α) : Prog (SortOps α) (List α) := do
         let res ← insertOrd x as
         insertHead a res
 
-lemma insertOrd_is_ListOrderedInsert [LinearOrder α] (x : α) (l : List α) :
-    l.Pairwise (· ≤ ·) → (insertOrd x l).eval (sortModel α) = l.orderedInsert (· ≤ ·) x := by
-  intro h_sorted
-  induction l with
-  | nil =>
-      simp [insertOrd, sortModel]
-  | cons head tail ih =>
-      rcases List.pairwise_cons.1 h_sorted with ⟨h_head_tail, h_tail_sorted⟩
-      by_cases h_head : head ≤ x
-      · by_cases h_x : x ≤ head
-        · have hx_head : head = x := le_antisymm h_head h_x
-          have htail : tail.orderedInsert (· ≤ ·) x = x :: tail := by
-            cases tail with
-            | nil =>
-                simp
-            | cons y ys =>
-                have hy : x ≤ y := by simpa [hx_head] using h_head_tail y (by simp)
-                simpa using List.orderedInsert_cons_of_le (· ≤ ·) ys hy
-          simp [insertOrd, sortModel, List.orderedInsert_cons, hx_head]
-        · simpa [insertOrd, sortModel, List.orderedInsert_cons, h_head, h_x] using ih h_tail_sorted
-      · have h_x : x ≤ head := le_of_not_ge h_head
-        simp [insertOrd, sortModel, List.orderedInsert_cons, h_x]
-
-
 @[simp]
-lemma insertOrd_length [LinearOrder α] (x : α) (l : List α) :
-    ((insertOrd x l).eval (sortModel α)).length = l.length + 1 := by
+lemma insertOrd_eval [LinearOrder α] (x : α) (l : List α) :
+    (insertOrd x l).eval (sortModel α) = l.orderedInsert (· ≤ ·) x := by
   induction l with
   | nil =>
-      simp [insertOrd, sortModel]
+    simp [insertOrd, sortModel]
   | cons head tail ih =>
-      by_cases h_head : x <= head
-      · simp [insertOrd, sortModel, h_head]
-      · simp [insertOrd, sortModel, h_head]
-        simpa [Prog.eval] using ih
+    by_cases h_head : x ≤ head
+    · simp [insertOrd, h_head]
+    · simp [insertOrd, h_head, ih]
+
+-- to upstream
+@[simp]
+lemma _root_.List.length_orderedInsert (x : α) (l : List α) [DecidableRel r] :
+    (l.orderedInsert r x).length = l.length + 1 := by
+  induction l <;> grind
 
 theorem insertOrd_complexity_upper_bound [LinearOrder α] (l : List α) (x : α) :
     (insertOrd x l).time (sortModel α) ≤ ⟨l.length, l.length + 1⟩ := by
@@ -84,10 +65,8 @@ theorem insertOrd_complexity_upper_bound [LinearOrder α] (l : List α) (x : α)
 
 lemma insertOrd_Sorted [LinearOrder α] (l : List α) (x : α) :
     l.Pairwise (· ≤ ·) → ((insertOrd x l).eval (sortModel α)).Pairwise (· ≤ ·) := by
-  intro l_mono
-  rw [insertOrd_is_ListOrderedInsert x l l_mono]
-  apply List.Pairwise.orderedInsert
-  assumption
+  rw [insertOrd_eval]
+  exact List.Pairwise.orderedInsert _ _
 
 end Algorithms
 
