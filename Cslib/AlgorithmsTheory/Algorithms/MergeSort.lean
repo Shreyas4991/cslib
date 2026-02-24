@@ -151,6 +151,7 @@ theorem mergeSort_perm [LinearOrder α] (xs : List α) :
     ((mergeSort xs).eval (sortModelNat α)).Perm xs := by
   rw [mergeSort_eq_mergeSortNaive]
   apply mergeSortNaive_Perm
+
 section TimeComplexity
 /- I am explicitly borrowing Sorrachai's code, which can be found in
 `Cslib.AlgorithmsTheory.Lean.MergeSort.MergeSort`. But the recurrence is not needed-/
