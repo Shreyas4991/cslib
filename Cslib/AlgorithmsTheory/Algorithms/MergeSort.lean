@@ -93,90 +93,80 @@ private def mergeSortNaive [LinearOrder α] (xs : List α) : List α :=
 private lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
     (mergeSort xs).eval (sortModelNat α) = mergeSortNaive xs := by
   classical
-  let P : Nat → Prop :=
-    fun n => ∀ xs, xs.length = n → (mergeSort xs).eval (sortModelNat α) = mergeSortNaive xs
-  have hP : P xs.length := by
-    induction hlen : xs.length using  Nat.strong_induction_on generalizing xs with
-    | h n ih =>
-    intro xs hlen
-    by_cases hlt : xs.length < 2
-    · nth_rw 1 [mergeSort, mergeSortNaive]
-      simp [hlt, Prog.eval]
-    · have hge : 2 ≤ xs.length := by grind
-      have hpos : 0 < xs.length := by grind
-      set half : Nat := xs.length / 2
-      set left : List α := xs.take half
-      set right : List α := xs.drop half
-      have hhalf_lt : half < xs.length := by grind
-      have hleft_le : left.length ≤ half := by grind
-      have hleft_lt_len : left.length < xs.length := by grind
-      have hright_lt_len : right.length < xs.length := by grind
-      have hleft : (mergeSort left).eval (sortModelNat α) = mergeSortNaive left := by grind
-      have hright : (mergeSort right).eval (sortModelNat α) = mergeSortNaive right := by grind
-      have hleft' :
-          Id.run (FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q)
-              (mergeSort (xs.take (xs.length / 2)))) =
-            mergeSortNaive (xs.take (xs.length / 2)) := by
-        simpa [left, half, Prog.eval] using hleft
-      have hright' :
-          Id.run (FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q)
-              (mergeSort (xs.drop (xs.length / 2)))) =
-            mergeSortNaive (xs.drop (xs.length / 2)) := by
-        simpa [right, half, Prog.eval] using hright
-      have hmerge (a b : List α) :
-          Id.run (FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q) (merge a b)) =
-            List.merge a b := by
-        simpa [Prog.eval] using (merge_eval_eq_listMerge (α := α) a b)
-      nth_rw 1 [mergeSort, mergeSortNaive]
-      simp only [hlt, if_false, Prog.eval, bind, FreeM.liftM_bind]
-      set a := Id.run <| FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q)
-          (mergeSort (List.take (xs.length / 2) xs)) with ha
-      set b := Id.run <| FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q)
-          (mergeSort (List.drop (xs.length / 2) xs)) with hb
-      calc
-        Id.run (FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q)
-            (merge
-              (Id.run <| FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q)
-                (mergeSort (List.take (xs.length / 2) xs)))
-              (Id.run <| FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q)
-                (mergeSort (List.drop (xs.length / 2) xs))))) =
-            Id.run (FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q) (merge a b)) := by
-          simp [a, b]
-        _ = List.merge a b := by apply hmerge a b
-        _ = List.merge (mergeSortNaive (List.take (xs.length / 2) xs))
-              (mergeSortNaive (List.drop (xs.length / 2) xs)) := by
-          simp only [hleft', hright', a, b]
-      rfl
-  exact hP xs rfl
+  induction hlen : xs.length using Nat.strong_induction_on generalizing xs with | _ n ih
+  by_cases hlt : xs.length < 2
+  · nth_rw 1 [mergeSort, mergeSortNaive]
+    simp [hlt, Prog.eval]
+  · have hge : 2 ≤ xs.length := by grind
+    have hpos : 0 < xs.length := by grind
+    set half : Nat := xs.length / 2
+    set left : List α := xs.take half
+    set right : List α := xs.drop half
+    have hhalf_lt : half < xs.length := by grind
+    have hleft_le : left.length ≤ half := by grind
+    have hleft_lt_len : left.length < xs.length := by grind
+    have hright_lt_len : right.length < xs.length := by grind
+    have hleft : (mergeSort left).eval (sortModelNat α) = mergeSortNaive left := by grind
+    have hright : (mergeSort right).eval (sortModelNat α) = mergeSortNaive right := by grind
+    have hleft' :
+        Id.run (FreeM.liftM (fun {ι} q => pure <| (sortModelNat α).evalQuery q)
+            (mergeSort (xs.take (xs.length / 2)))) =
+          mergeSortNaive (xs.take (xs.length / 2)) := by
+      simpa [left, half, Prog.eval] using hleft
+    have hright' :
+        Id.run (FreeM.liftM (fun {ι} q => pure <| (sortModelNat α).evalQuery q)
+            (mergeSort (xs.drop (xs.length / 2)))) =
+          mergeSortNaive (xs.drop (xs.length / 2)) := by
+      simpa [right, half, Prog.eval] using hright
+    have hmerge (a b : List α) :
+        Id.run (FreeM.liftM (fun {ι} q => pure <| (sortModelNat α).evalQuery q) (merge a b)) =
+          List.merge a b := by
+      simpa [Prog.eval] using (merge_eval_eq_listMerge (α := α) a b)
+    nth_rw 1 [mergeSort, mergeSortNaive]
+    simp only [hlt, if_false, Prog.eval, bind, FreeM.liftM_bind]
+    set a := Id.run <| FreeM.liftM (fun {ι} q => pure <| (sortModelNat α).evalQuery q)
+        (mergeSort (List.take (xs.length / 2) xs)) with ha
+    set b := Id.run <| FreeM.liftM (fun {ι} q => pure <| (sortModelNat α).evalQuery q)
+        (mergeSort (List.drop (xs.length / 2) xs)) with hb
+    calc
+      Id.run (FreeM.liftM (fun {ι} q => pure <| (sortModelNat α).evalQuery q)
+          (merge
+            (Id.run <| FreeM.liftM (fun {ι} q => pure <| (sortModelNat α).evalQuery q)
+              (mergeSort (List.take (xs.length / 2) xs)))
+            (Id.run <| FreeM.liftM (fun {ι} q => pure <| (sortModelNat α).evalQuery q)
+              (mergeSort (List.drop (xs.length / 2) xs))))) =
+          Id.run (FreeM.liftM (fun {ι} q => pure <| (sortModelNat α).evalQuery q) (merge a b)) := by
+        simp [a, b]
+      _ = List.merge a b := by apply hmerge a b
+      _ = List.merge (mergeSortNaive (List.take (xs.length / 2) xs))
+            (mergeSortNaive (List.drop (xs.length / 2) xs)) := by
+        simp only [hleft', hright', a, b]
+    rfl
 
 private lemma mergeSortNaive_length [LinearOrder α] (xs : List α) :
     (mergeSortNaive xs).length = xs.length := by
-  let P : Nat → Prop :=
-    fun n => ∀ ys : List α, ys.length = n → (mergeSortNaive ys).length = ys.length
-  have hP : P xs.length := by
-    induction hlen : xs.length using  Nat.strong_induction_on generalizing xs with
-    | h n ih =>
-    intro ys hlen
-    by_cases hlt : ys.length < 2
-    · simp [mergeSortNaive, hlt]
-    · have hge : 2 ≤ ys.length := le_of_not_gt hlt
-      have hpos : 0 < ys.length := lt_of_lt_of_le (by decide : 0 < (2 : Nat)) hge
-      have hhalf_lt : ys.length / 2 < ys.length := by grind
-      have htake_lt : (ys.take (ys.length / 2)).length < ys.length := by
-        simp only [List.length_take, inf_lt_right, not_le]
-        grind
-      have hdrop_lt : (ys.drop (ys.length / 2)).length < ys.length := by
-        simp only [List.length_drop, tsub_lt_self_iff, Nat.div_pos_iff, Nat.zero_lt_succ, true_and]
-        grind
-      have hleft : (mergeSortNaive (ys.take (ys.length / 2))).length =
-            (ys.take (ys.length / 2)).length := by grind
-      have hright : (mergeSortNaive (ys.drop (ys.length / 2))).length =
-            (ys.drop (ys.length / 2)).length := by grind
-      have hdiv_le : ys.length / 2 ≤ ys.length := Nat.div_le_self _ _
-      rw [mergeSortNaive]
-      simp [hlt, List.length_merge, hleft, hright, List.length_take, List.length_drop,
-        Nat.min_eq_left hdiv_le, Nat.add_sub_of_le hdiv_le]
-  exact hP xs rfl
+  induction hlen : xs.length using Nat.strong_induction_on generalizing xs with | _ n ih
+  cases hlen
+  by_cases hlt : xs.length < 2
+  · simp [mergeSortNaive, hlt]
+  · have hge : 2 ≤ xs.length := le_of_not_gt hlt
+    have hpos : 0 < xs.length := lt_of_lt_of_le (by decide : 0 < (2 : Nat)) hge
+    have hhalf_lt : xs.length / 2 < xs.length := by grind
+    have htake_lt : (xs.take (xs.length / 2)).length < xs.length := by
+      simp only [List.length_take, inf_lt_right, not_le]
+      grind
+    have hdrop_lt : (xs.drop (xs.length / 2)).length < xs.length := by
+      simp only [List.length_drop, tsub_lt_self_iff, Nat.div_pos_iff, Nat.zero_lt_succ, true_and]
+      grind
+    have hleft : (mergeSortNaive (xs.take (xs.length / 2))).length =
+          (xs.take (xs.length / 2)).length := by grind
+    have hright : (mergeSortNaive (xs.drop (xs.length / 2))).length =
+          (xs.drop (xs.length / 2)).length := by grind
+    have hdiv_le : xs.length / 2 ≤ xs.length := Nat.div_le_self _ _
+    rw [mergeSortNaive]
+    simp [hlt, List.length_merge, hleft, hright, List.length_take, List.length_drop,
+      Nat.min_eq_left hdiv_le, Nat.add_sub_of_le hdiv_le]
+
 
 lemma mergeSort_length [LinearOrder α] (xs : List α) :
     ((mergeSort xs).eval (sortModelNat α)).length = xs.length := by
@@ -191,36 +181,31 @@ lemma merge_sorted_sorted [LinearOrder α] (xs ys : List α)
 
 private lemma mergeSortNaive_sorted [LinearOrder α] (xs : List α) :
     (mergeSortNaive xs).Pairwise (· ≤ ·) := by
-  let P : Nat → Prop :=
-    fun n => ∀ ys : List α, ys.length = n → (mergeSortNaive ys).Pairwise (· ≤ ·)
-  have hP : P xs.length := by
-    refine Nat.strong_induction_on (n := xs.length) ?_
-    intro n ih ys hlen
-    by_cases hlt : ys.length < 2
-    · cases ys with
-      | nil =>
-          simp [mergeSortNaive]
-      | cons y ys' =>
-          cases ys' with
-          | nil =>
-              simp [mergeSortNaive]
-          | cons z zs =>
-              exact (Nat.not_lt_of_ge (by simp) hlt).elim
-    · have hge : 2 ≤ ys.length := le_of_not_gt hlt
-      have hpos : 0 < ys.length := lt_of_lt_of_le (by decide : 0 < (2 : Nat)) hge
-      have hhalf_lt : ys.length / 2 < ys.length := by grind
-      have htake_lt : (ys.take (ys.length / 2)).length < ys.length := by
-        simp only [List.length_take, inf_lt_right, not_le]
-        grind
-      have hdrop_lt : (ys.drop (ys.length / 2)).length < ys.length := by
-        simp only [List.length_drop, tsub_lt_self_iff, Nat.div_pos_iff, Nat.zero_lt_succ, true_and]
-        grind
-      have hleft : (mergeSortNaive (ys.take (ys.length / 2))).Pairwise (· ≤ ·) := by grind
-      have hright : (mergeSortNaive (ys.drop (ys.length / 2))).Pairwise (· ≤ ·) := by grind
-      rw [mergeSortNaive]
-      simp only [hlt, ↓reduceIte]
-      grind [List.pairwise_merge]
-  exact hP xs rfl
+  induction hlen : xs.length using Nat.strong_induction_on generalizing xs with | _ n ih
+  by_cases hlt : xs.length < 2
+  · cases xs with
+    | nil =>
+        simp [mergeSortNaive]
+    | cons y xs' =>
+        cases xs' with
+        | nil =>
+            simp [mergeSortNaive]
+        | cons z zs =>
+            exact (Nat.not_lt_of_ge (by simp) hlt).elim
+  · have hge : 2 ≤ xs.length := le_of_not_gt hlt
+    have hpos : 0 < xs.length := lt_of_lt_of_le (by decide : 0 < (2 : Nat)) hge
+    have hhalf_lt : xs.length / 2 < xs.length := by grind
+    have htake_lt : (xs.take (xs.length / 2)).length < xs.length := by
+      simp only [List.length_take, inf_lt_right, not_le]
+      grind
+    have hdrop_lt : (xs.drop (xs.length / 2)).length < xs.length := by
+      simp only [List.length_drop, tsub_lt_self_iff, Nat.div_pos_iff, Nat.zero_lt_succ, true_and]
+      grind
+    have hleft : (mergeSortNaive (xs.take (xs.length / 2))).Pairwise (· ≤ ·) := by grind
+    have hright : (mergeSortNaive (xs.drop (xs.length / 2))).Pairwise (· ≤ ·) := by grind
+    rw [mergeSortNaive]
+    simp only [hlt, ↓reduceIte]
+    grind [List.pairwise_merge]
 
 theorem mergeSort_sorted [LinearOrder α] (xs : List α) :
     ((mergeSort xs).eval (sortModelNat α)).Pairwise (· ≤ ·) := by
