@@ -93,6 +93,14 @@ private def mergeSortNaive [LinearOrder α] (xs : List α) : List α :=
 private proof_wanted mergeSortNaive_eq_mergeSort [LinearOrder α] (xs : List α) :
     mergeSortNaive xs = xs.mergeSort
 
+private lemma mergeSortNaive_Perm [LinearOrder α] (xs : List α) :
+  (mergeSortNaive xs).Perm xs := by
+  fun_induction mergeSortNaive
+  · simp
+  · expose_names
+    rw [←(List.take_append_drop (x.length / 2) x)]
+    grind [List.merge_perm_append]
+
 private lemma mergeSort_eq_mergeSortNaive [LinearOrder α] (xs : List α) :
     (mergeSort xs).eval (sortModelNat α) = mergeSortNaive xs := by
   fun_induction mergeSort with

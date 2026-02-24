@@ -32,6 +32,10 @@ theorem insertionSort_eval [LinearOrder α] (l : List α) :
     (insertionSort l).eval (sortModel α) = l.insertionSort (· ≤ ·) := by
   induction l with simp_all [insertionSort]
 
+theorem insertionSort_permutation [LinearOrder α] (l : List α) :
+    ((insertionSort l).eval (sortModel α)).Perm l := by
+    simp [insertionSort_eval, List.perm_insertionSort]
+
 theorem insertionSort_sorted [LinearOrder α] (l : List α) :
     ((insertionSort l).eval (sortModel α)).Pairwise (· ≤ ·) := by
   simpa using List.pairwise_insertionSort _ _
