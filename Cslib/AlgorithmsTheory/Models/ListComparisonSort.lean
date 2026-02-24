@@ -71,8 +71,8 @@ instance : LE SortOpsCost where
 instance : LT SortOpsCost where
   lt soc₁ soc₂ := soc₁ ≤ soc₂ ∧ (soc₁.compares < soc₂.compares ∨ soc₁.inserts < soc₂.inserts)
 
-@[simps!, grind]
-instance partialOrderSortOps : PartialOrder SortOpsCost := by
+@[grind]
+instance : PartialOrder SortOpsCost := by
   apply Function.Injective.partialOrder SortOpsCost.toProd
   · exact SortOpsCost.toProd.inj'
   · rfl
@@ -85,11 +85,11 @@ instance partialOrderSortOps : PartialOrder SortOpsCost := by
       all_goals grind only
 
 @[simps]
-instance AddSortOps : Add SortOpsCost where
+instance : Add SortOpsCost where
   add (soc₁ soc₂ : SortOpsCost) :=  ⟨soc₁.compares + soc₂.compares, soc₁.inserts + soc₂.inserts⟩
 
 @[simps]
-instance SMulSortOps : SMul ℕ SortOpsCost where
+instance : SMul ℕ SortOpsCost where
   smul (n : ℕ) (soc : SortOpsCost) : SortOpsCost := ⟨n • soc.compares, n • soc.inserts⟩
 
 instance : AddCommMonoid SortOpsCost := by

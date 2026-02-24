@@ -88,8 +88,8 @@ theorem insertOrd_complexity_upper_bound [LinearOrder α] :
       · constructor
         · simp_all only [time, Bool.not_eq_true, Lean.TimeM.time_tick, FreeM.liftM_bind,
           FreeM.liftM_liftBind, bind_pure_comp, FreeM.liftM_pure, bind_pure, Lean.TimeM.time_bind,
-          Lean.TimeM.time_map, AddSortOps_add_compares, cost_cmpLT_compares,
-          cost_insertHead_compares, add_zero]
+          Lean.TimeM.time_map, add_compares, cost_cmpLT_compares, cost_insertHead_compares,
+          add_zero]
           grind
         · simp_all
 
