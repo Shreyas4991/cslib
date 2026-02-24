@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Shreyas Srinivas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Shreyas Srinivas
+Authors: Shreyas Srinivas, Eric Wieser
 -/
 
 module
@@ -37,22 +37,22 @@ lemma listLinearSearchM_correct_true [BEq α] [LawfulBEq α] (l : List α) {x : 
     (listLinearSearch l x).eval ListSearch.natCost = true := by
   induction l with
   | nil =>
-      simp_all only [List.not_mem_nil]
+    simp_all only [List.not_mem_nil]
   | cons head tail ih =>
-      simp_all only [eval, List.mem_cons, listLinearSearch, FreeM.lift_def, FreeM.pure_eq_pure,
-        FreeM.bind_eq_bind, FreeM.liftBind_bind, FreeM.pure_bind, FreeM.liftM_liftBind,
-        LawfulMonad.pure_bind]
-      split_ifs with h
-      · obtain (x_head | xtail) := x_mem_l
-        · rw [x_head] at h
-          simp only [ListSearch.natCost, List.head?_cons] at h
-          simp
-        · specialize ih xtail
-          simp
-      · obtain (x_head | x_tail) := x_mem_l
-        · simp [x_head, ListSearch.natCost] at h
-        · specialize ih x_tail
-          simp_all
+    simp_all only [eval, List.mem_cons, listLinearSearch, FreeM.lift_def, FreeM.pure_eq_pure,
+      FreeM.bind_eq_bind, FreeM.liftBind_bind, FreeM.pure_bind, FreeM.liftM_liftBind,
+      LawfulMonad.pure_bind]
+    split_ifs with h
+    · obtain (x_head | xtail) := x_mem_l
+      · rw [x_head] at h
+        simp only [ListSearch.natCost, List.head?_cons] at h
+        simp
+      · specialize ih xtail
+        simp
+    · obtain (x_head | x_tail) := x_mem_l
+      · simp [x_head, ListSearch.natCost] at h
+      · specialize ih x_tail
+        simp_all
 
 lemma listLinearSearchM_correct_false [BEq α] [LawfulBEq α] (l : List α) {x : α} (x_mem_l : x ∉ l) :
     (listLinearSearch l x).eval ListSearch.natCost = false := by

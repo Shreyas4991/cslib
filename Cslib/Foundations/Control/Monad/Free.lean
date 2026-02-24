@@ -154,13 +154,25 @@ lemma map_lift (f : ι → α) (op : F ι) :
     map f (lift op : FreeM F ι) = liftBind op (fun z => (.pure (f z) : FreeM F α)) := rfl
 
 /-- `.pure a` followed by `bind` collapses immediately. -/
-@[simp]
+@[simp, grind =]
 lemma pure_bind (a : α) (f : α → FreeM F β) : (.pure a : FreeM F α).bind f = f a := rfl
 
-@[simp]
+@[simp, grind =]
+lemma pure_bind' {α β} (a : α) (f : α → FreeM F β) : (.pure a : FreeM F α) >>= f = f a :=
+  pure_bind a f
+
+@[simp, grind =]
 lemma bind_pure : ∀ x : FreeM F α, x.bind (.pure) = x
   | .pure a => rfl
   | liftBind op k => by simp [FreeM.bind, bind_pure]
+
+@[simp, grind =]
+lemma bind_pure' : ∀ x : FreeM F α, x >>= .pure = x := bind_pure
+
+@[grind =]
+lemma Prog.pure_bind :
+    FreeM.pure x >>= m = m x := by
+  rfl
 
 @[simp]
 lemma bind_pure_comp (f : α → β) : ∀ x : FreeM F α, x.bind (.pure ∘ f) = map f x

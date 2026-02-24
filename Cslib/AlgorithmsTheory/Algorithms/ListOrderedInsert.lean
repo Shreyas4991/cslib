@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Shreyas Srinivas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Shreyas Srinivas
+Authors: Shreyas Srinivas, Eric Wieser
 -/
 
 module
@@ -27,9 +27,7 @@ def insertOrd (x : α) (l : List α) : Prog (SortOps α) (List α) := do
   match l with
   | [] => insertHead x l
   | a :: as =>
-      let cmp : Bool ← cmpLE x a
-      if cmp
-      then
+      if (← cmpLE x a : Bool) then
         insertHead x (a :: as)
       else
         let res ← insertOrd x as
@@ -59,7 +57,7 @@ lemma insertOrd_is_ListOrderedInsert [LinearOrder α] (x : α) (l : List α) :
         simp [insertOrd, sortModel, List.orderedInsert_cons, h_x]
 
 
-
+@[simp]
 lemma insertOrd_length [LinearOrder α] (x : α) (l : List α) :
     ((insertOrd x l).eval (sortModel α)).length = l.length + 1 := by
   induction l with
@@ -71,27 +69,18 @@ lemma insertOrd_length [LinearOrder α] (x : α) (l : List α) :
       · simp [insertOrd, sortModel, h_head]
         simpa [Prog.eval] using ih
 
-theorem insertOrd_complexity_upper_bound [LinearOrder α] :
-    ∀ (l : List α) (x : α),
-      (insertOrd x l).time (sortModel α) ≤ ⟨l.length, l.length + 1⟩ := by
-  intro l x
+theorem insertOrd_complexity_upper_bound [LinearOrder α] (l : List α) (x : α) :
+    (insertOrd x l).time (sortModel α) ≤ ⟨l.length, l.length + 1⟩ := by
   induction l with
   | nil =>
-      simp [insertOrd, sortModel]
+    simp [insertOrd, sortModel]
   | cons head tail ih =>
-      obtain ⟨ih_compares, ih_inserts⟩ := ih
-      simp only [time, bind_pure_comp, insertOrd, FreeM.lift_def, FreeM.bind_eq_bind,
-        FreeM.liftBind_bind, FreeM.pure_bind, FreeM.liftM_liftBind, bind_map_left,
-        Lean.TimeM.time_bind, List.length_cons, le_def]
-      split_ifs with h_head
-      · constructor <;> simp_all
-      · constructor
-        · simp_all only [time, sortModel_evalQuery, decide_eq_true_eq, not_le, sortModel_cost,
-          Lean.TimeM.time_tick, FreeM.liftM_bind, FreeM.liftM_liftBind, bind_pure_comp,
-          FreeM.liftM_pure, _root_.bind_pure, Lean.TimeM.time_bind, Lean.TimeM.time_map,
-          add_compares, add_zero]
-          grind
-        · simp_all
+    obtain ⟨ih_compares, ih_inserts⟩ := ih
+    rw [insertOrd]
+    by_cases h_head : x ≤ head
+    · simp [h_head]
+    · simp [h_head]
+      grind
 
 lemma insertOrd_Sorted [LinearOrder α] (l : List α) (x : α) :
     l.Pairwise (· ≤ ·) → ((insertOrd x l).eval (sortModel α)).Pairwise (· ≤ ·) := by

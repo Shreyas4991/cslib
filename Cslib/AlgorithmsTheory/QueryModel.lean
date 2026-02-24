@@ -77,52 +77,63 @@ abbrev Prog Q α := FreeM Q α
 /--
 The evaluation function of a program `P : Prog Q α` given a model `M : Model Q α` of `Q`
 -/
-@[simp, grind]
+@[grind]
 def Prog.eval [AddCommMonoid Cost]
     (P : Prog Q α) (M : Model Q Cost) : α :=
   Id.run <| P.liftM fun x => pure (M.evalQuery x)
+
+@[simp]
+theorem Prog.eval_pure [AddCommMonoid Cost] (a : α) (M : Model Q Cost) :
+    Prog.eval (FreeM.pure a) M = a :=
+  rfl
+
+
+@[simp]
+theorem Prog.eval_bind
+    [AddCommMonoid Cost] (x : Prog Q α) (f : α → Prog Q β) (M : Model Q Cost) :
+    Prog.eval (FreeM.bind x f) M =  Prog.eval (f (Prog.eval x M)) M := by
+  simp [Prog.eval]
+
+
+@[simp]
+theorem Prog.eval_liftBind
+    [AddCommMonoid Cost] (x : Q α) (f : α → Prog Q β) (M : Model Q Cost) :
+    Prog.eval (FreeM.liftBind x f) M =  Prog.eval (f <| M.evalQuery x) M := by
+  simp [Prog.eval]
 
 /--
 The cost function of a program `P : Prog Q α` given a model `M : Model Q α` of `Q`.
 The most common use case of this function is to compute time-complexity, hence the name.
 -/
-@[simp, grind]
 def Prog.time [AddCommMonoid Cost]
     (P : Prog Q α) (M : Model Q Cost) : Cost :=
   (P.liftM M.timeQuery).time
 
-@[grind =]
-lemma Prog.bind_pure :
-    op >>= FreeM.pure = op := by
-  simp only [bind, FreeM.bind_pure]
+@[simp, grind =]
+lemma Prog.time_pure [AddCommMonoid Cost] (a : α) (M : Model Q Cost) :
+    Prog.time (FreeM.pure a) M = 0 := by
+  simp [time]
 
-@[grind =]
-lemma Prog.pure_bind :
-    FreeM.pure x >>= m = m x := by
-  rfl
+@[simp, grind =]
+theorem Prog.time_liftBind
+    [AddCommMonoid Cost] (x : Q α) (f : α → Prog Q β) (M : Model Q Cost) :
+    Prog.time (FreeM.liftBind x f) M = M.cost x + Prog.time (f <| M.evalQuery x) M := by
+  simp [Prog.time]
 
-@[grind =]
-lemma Prog.time.bind [AddCommMonoid Cost] (M : Model Q Cost)
+@[simp, grind =]
+lemma Prog.time_bind [AddCommMonoid Cost] (M : Model Q Cost)
     (op : Prog Q ι) (cont : ι → Prog Q α) :
-    Prog.time (op >>= cont) M =
+    Prog.time (op.bind cont) M =
       (Prog.time op M) + (Prog.time (cont (Prog.eval op M)) M):= by
-  simp only [FreeM.bind_eq_bind, eval]
+  simp only [eval, time]
   induction op with
   | pure a =>
       simp
   | liftBind op cont' ih =>
       specialize ih (M.evalQuery op)
-      simp_all only [time, bind_pure_comp, FreeM.liftM_bind, Lean.TimeM.time_bind,
+      simp_all only [bind_pure_comp, FreeM.liftM_bind, Lean.TimeM.time_bind,
         FreeM.liftBind_bind, FreeM.liftM_liftBind, bind_map_left, LawfulMonad.pure_bind]
       rw [add_assoc]
-
-@[grind =]
-lemma Prog.time.liftBind [AddCommMonoid Cost] (M : Model Q Cost)
-    (op : Q ι) (cont : ι → Prog Q α) :
-    Prog.time (.liftBind op cont) M =
-      (Prog.time (FreeM.lift op) M) + (Prog.time (cont (M.evalQuery op)) M):= by
-  simp only [time, bind_pure_comp, FreeM.liftM_liftBind, bind_map_left, Lean.TimeM.time_bind,
-    Lean.TimeM.time_tick, FreeM.lift_def, FreeM.liftM_pure, _root_.bind_pure, Lean.TimeM.time_map]
 
 section Reduction
 
