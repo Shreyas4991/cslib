@@ -41,24 +41,17 @@ structure SortOpsCost where
   inserts : ℕ
 
 /--
-Injective mapping from a pair of ℕ to SortOpsCost
+Equivalence between SortOpsCost and ℕ
 -/
-def SortOpsCost.ofProd : ℕ × ℕ ↪ SortOpsCost where
-  toFun pair := ⟨pair.1, pair.2⟩
-  inj' := by
-    unfold Function.Injective
-    intro (_,_) (_, _)
-    simp only [mk.injEq, Prod.mk.injEq, imp_self]
-
-/--
-Injective mapping from SortOpsCost to a pair of ℕ
--/
-def SortOpsCost.toProd : SortOpsCost ↪ ℕ × ℕ  where
-  toFun pair := (pair.compares, pair.inserts)
-  inj' := by
-    unfold Function.Injective
-    intro ⟨_,_⟩ ⟨_,_⟩
-    simp only [mk.injEq, Prod.mk.injEq, imp_self]
+def SortOpsCost.Equiv : Equiv SortOpsCost (ℕ × ℕ) where
+  toFun sortOps := (sortOps.compares, sortOps.inserts)
+  invFun pair := ⟨pair.1, pair.2⟩
+  left_inv := by
+    intro _
+    rfl
+  right_inv := by
+    intro _
+    rfl
 
 @[simps, grind]
 instance : Zero SortOpsCost := ⟨0,0⟩
@@ -73,16 +66,18 @@ instance : LT SortOpsCost where
 
 @[grind]
 instance : PartialOrder SortOpsCost := by
-  apply Function.Injective.partialOrder SortOpsCost.toProd
-  · exact SortOpsCost.toProd.inj'
+  apply Function.Injective.partialOrder SortOpsCost.Equiv.toEmbedding
+  · exact SortOpsCost.Equiv.toEmbedding.inj'
   · rfl
   · intro x y
-    simp only [SortOpsCost.toProd, Function.Embedding.coeFn_mk, Prod.mk_lt_mk, lt_def, le_def]
+    simp only [lt_def, le_def]
     refine ⟨?_, ?_⟩
-    · rintro (⟨h_compares, h_inserts⟩ | ⟨h_compares, h_inserts⟩)
-      all_goals grind only
-    · rintro ⟨h_leq, (h | h)⟩
-      all_goals grind only
+    · simp only [SortOpsCost.Equiv, Equiv.coe_toEmbedding, Equiv.coe_fn_mk, Prod.mk_lt_mk]
+      rintro (⟨_, _⟩ | ⟨_, _⟩)
+      all_goals grind
+    · simp only [SortOpsCost.Equiv, Equiv.coe_toEmbedding, Equiv.coe_fn_mk, Prod.mk_lt_mk, and_imp]
+      intros
+      all_goals grind
 
 @[simps]
 instance : Add SortOpsCost where
@@ -93,8 +88,8 @@ instance : SMul ℕ SortOpsCost where
   smul (n : ℕ) (soc : SortOpsCost) : SortOpsCost := ⟨n • soc.compares, n • soc.inserts⟩
 
 instance : AddCommMonoid SortOpsCost := by
-  apply Function.Injective.addCommMonoid SortOpsCost.toProd
-  · exact SortOpsCost.toProd.inj'
+  apply Function.Injective.addCommMonoid SortOpsCost.Equiv.toEmbedding
+  · exact SortOpsCost.Equiv.toEmbedding.inj'
   · rfl
   · intro ⟨xcomp, xins⟩ ⟨ycomp, yins⟩
     rfl
