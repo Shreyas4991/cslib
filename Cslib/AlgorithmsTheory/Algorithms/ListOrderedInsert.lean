@@ -35,11 +35,9 @@ def insertOrd (x : α) (l : List α) : Prog (SortOps α) (List α) := do
         let res ← insertOrd x as
         insertHead a res
 
-lemma insertOrd_is_ListOrderedInsert [LinearOrder α] :
-    ∀ (x : α) (l : List α) ,
-      l.Pairwise (· ≤ ·) →
-        (insertOrd x l).eval (sortModel α) = l.orderedInsert (· ≤ ·) x := by
-  intro x l h_sorted
+lemma insertOrd_is_ListOrderedInsert [LinearOrder α] (x : α) (l : List α) :
+    l.Pairwise (· ≤ ·) → (insertOrd x l).eval (sortModel α) = l.orderedInsert (· ≤ ·) x := by
+  intro h_sorted
   induction l with
   | nil =>
       simp [insertOrd, sortModel]
