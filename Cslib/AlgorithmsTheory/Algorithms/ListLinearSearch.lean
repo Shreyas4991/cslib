@@ -34,7 +34,6 @@ def listLinearSearch (l : List α) (x : α) : Prog (ListSearch α) Bool := do
       else
         listLinearSearch ls x
 
-@[grind =]
 lemma listLinearSearchM_correct_true [DecidableEq α] (l : List α) {x : α} (x_mem_l : x ∈ l) :
     (listLinearSearch l x).eval ListSearch.natCost = true := by
   induction l with
@@ -56,7 +55,7 @@ lemma listLinearSearchM_correct_true [DecidableEq α] (l : List α) {x : α} (x_
         · specialize ih x_tail
           simp_all
 
-@[grind =]
+
 lemma listLinearSearchM_correct_false [DecidableEq α] (l : List α) {x : α} (x_mem_l : x ∉ l) :
     (listLinearSearch l x).eval ListSearch.natCost = false := by
   induction l with
@@ -76,8 +75,8 @@ lemma listLinearSearchM_correct_false [DecidableEq α] (l : List α) {x : α} (x
 lemma listLinearSearch_correctness [DecidableEq α] (l : List α) (x : α) :
   (listLinearSearch l x).eval ListSearch.natCost = l.contains x := by
   by_cases hlx : l.contains x
-  · grind
-  · grind
+  · grind [listLinearSearchM_correct_true]
+  · grind [listLinearSearchM_correct_false]
 
 lemma listLinearSearchM_time_complexity_upper_bound [DecidableEq α] (l : List α) (x : α) :
   (listLinearSearch l x).time ListSearch.natCost ≤ 1 + l.length := by
