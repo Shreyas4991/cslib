@@ -34,13 +34,13 @@ def insertOrd (x : α) (l : List α) : Prog (SortOps α) (List α) := do
         insertHead a res
 
 @[simp]
-lemma insertOrd_eval [LinearOrder α] (x : α) (l : List α) :
-    (insertOrd x l).eval (sortModel α) = l.orderedInsert (· ≤ ·) x := by
+lemma insertOrd_eval (x : α) (l : List α) (le : α → α → Prop) [DecidableRel le] :
+    (insertOrd x l).eval (sortModel le) = l.orderedInsert le x := by
   induction l with
   | nil =>
     simp [insertOrd, sortModel]
   | cons head tail ih =>
-    by_cases h_head : x ≤ head
+    by_cases h_head : le x head
     · simp [insertOrd, h_head]
     · simp [insertOrd, h_head, ih]
 
@@ -50,21 +50,23 @@ lemma _root_.List.length_orderedInsert (x : α) (l : List α) [DecidableRel r] :
     (l.orderedInsert r x).length = l.length + 1 := by
   induction l <;> grind
 
-theorem insertOrd_complexity_upper_bound [LinearOrder α] (l : List α) (x : α) :
-    (insertOrd x l).time (sortModel α) ≤ ⟨l.length, l.length + 1⟩ := by
+theorem insertOrd_complexity_upper_bound
+    (l : List α) (x : α) (le : α → α → Prop) [DecidableRel le] :
+    (insertOrd x l).time (sortModel le) ≤ ⟨l.length, l.length + 1⟩ := by
   induction l with
   | nil =>
     simp [insertOrd, sortModel]
   | cons head tail ih =>
     obtain ⟨ih_compares, ih_inserts⟩ := ih
     rw [insertOrd]
-    by_cases h_head : x ≤ head
+    by_cases h_head : le x head
     · simp [h_head]
     · simp [h_head]
       grind
 
-lemma insertOrd_Sorted [LinearOrder α] (l : List α) (x : α) :
-    l.Pairwise (· ≤ ·) → ((insertOrd x l).eval (sortModel α)).Pairwise (· ≤ ·) := by
+lemma insertOrd_sorted
+    (l : List α) (x : α) (le : α → α → Prop) [DecidableRel le] [Std.Total le] [IsTrans _ le] :
+    l.Pairwise le → ((insertOrd x l).eval (sortModel le)).Pairwise le := by
   rw [insertOrd_eval]
   exact List.Pairwise.orderedInsert _ _
 

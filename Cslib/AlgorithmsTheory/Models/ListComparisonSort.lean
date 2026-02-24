@@ -83,9 +83,9 @@ end SortOpsCost
 A model of `SortOps` that uses `SortOpsCost` as the cost type for operations.
 -/
 @[simps, grind]
-def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) SortOpsCost where
+def sortModel {α : Type} (le : α → α → Prop) [DecidableRel le] : Model (SortOps α) SortOpsCost where
   evalQuery
-    | .cmpLE x y => decide (x ≤ y)
+    | .cmpLE x y => decide (le x y)
     | .insertHead x l => x :: l
   cost
     | .cmpLE _ _ => ⟨1,0⟩
@@ -100,9 +100,9 @@ A model of `SortOps` that uses `ℕ` as the type for the cost of operations. In 
 both comparisons and insertions are counted in a single `ℕ` parameter.
 -/
 @[simps]
-def sortModelNat (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
+def sortModelNat {α : Type} (le : α → α → Prop) [DecidableRel le] : Model (SortOps α) ℕ where
   evalQuery
-    | .cmpLE x y => decide (x ≤ y)
+    | .cmpLE x y => decide (le x y)
     | .insertHead x l => x :: l
   cost
     | .cmpLE _ _ => 1
