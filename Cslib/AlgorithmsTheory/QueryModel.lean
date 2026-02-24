@@ -66,7 +66,7 @@ open Cslib.Algorithms.Lean in
 /-- lift `Model.cost` to `TimeM Cost ι` -/
 abbrev Model.timeQuery [AddCommMonoid Cost]
     (M : Model Q Cost) (x : Q ι) : TimeM Cost ι := do
-  TimeM.tick (M.cost x); return (M.evalQuery x)
+  ✓[M.cost x] return M.evalQuery x
 
 /--
 A program is defined as a Free Monad over a Query type `Q` which operates on a base type `α`
@@ -90,14 +90,14 @@ theorem Prog.eval_pure [AddCommMonoid Cost] (a : α) (M : Model Q Cost) :
 @[simp, grind =]
 theorem Prog.eval_bind
     [AddCommMonoid Cost] (x : Prog Q α) (f : α → Prog Q β) (M : Model Q Cost) :
-    Prog.eval (FreeM.bind x f) M =  Prog.eval (f (Prog.eval x M)) M := by
+    Prog.eval (FreeM.bind x f) M = Prog.eval (f (x.eval M)) M := by
   simp [Prog.eval]
 
 
 @[simp, grind =]
 theorem Prog.eval_liftBind
     [AddCommMonoid Cost] (x : Q α) (f : α → Prog Q β) (M : Model Q Cost) :
-    Prog.eval (FreeM.liftBind x f) M =  Prog.eval (f <| M.evalQuery x) M := by
+    Prog.eval (FreeM.liftBind x f) M = Prog.eval (f <| M.evalQuery x) M := by
   simp [Prog.eval]
 
 /--
@@ -123,16 +123,16 @@ theorem Prog.time_liftBind
 lemma Prog.time_bind [AddCommMonoid Cost] (M : Model Q Cost)
     (op : Prog Q ι) (cont : ι → Prog Q α) :
     Prog.time (op.bind cont) M =
-      (Prog.time op M) + (Prog.time (cont (Prog.eval op M)) M):= by
+      Prog.time op M + Prog.time (cont (Prog.eval op M)) M := by
   simp only [eval, time]
   induction op with
   | pure a =>
-      simp
+    simp
   | liftBind op cont' ih =>
-      specialize ih (M.evalQuery op)
-      simp_all only [bind_pure_comp, FreeM.liftM_bind, Lean.TimeM.time_bind,
-        FreeM.liftBind_bind, FreeM.liftM_liftBind, bind_map_left, LawfulMonad.pure_bind]
-      rw [add_assoc]
+    specialize ih (M.evalQuery op)
+    simp_all only [bind_pure_comp, FreeM.liftM_bind, Lean.TimeM.time_bind,
+      FreeM.liftBind_bind, FreeM.liftM_liftBind, bind_map_left, LawfulMonad.pure_bind]
+    rw [add_assoc]
 
 section Reduction
 
