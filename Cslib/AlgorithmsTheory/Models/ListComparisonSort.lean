@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Shreyas Srinivas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Shreyas Srinivas
+Authors: Shreyas Srinivas, Eric WIeser
 -/
 
 module
@@ -19,10 +19,10 @@ open Prog
 A model for comparison sorting on lists.
 -/
 inductive SortOps (α : Type) : Type → Type  where
-  /--`cmpLE x y` is intended to return `true` if `x ≤ y` and `false` otherwise.
-  The specific order relation depends on the model provided for this type-/
-  | cmpLE (x : α) (y : α): SortOps α Bool
-  /--`insertHead l x` is intended to return `x :: l`-/
+  /-- `cmpLE x y` is intended to return `true` if `x ≤ y` and `false` otherwise.
+  The specific order relation depends on the model provided for this typ. e-/
+  | cmpLE (x : α) (y : α) : SortOps α Bool
+  /-- `insertHead l x` is intended to return `x :: l`. -/
   | insertHead (x : α) (l : List α) : SortOps α (List α)
 
 open SortOps
@@ -41,43 +41,29 @@ structure SortOpsCost where
   inserts : ℕ
 
 /--
-Equivalence between SortOpsCost and ℕ
+Equivalence between SortOpsCost and a product type.
 -/
-def SortOpsCost.Equiv : Equiv SortOpsCost (ℕ × ℕ) where
+def SortOpsCost.equivProd : SortOpsCost ≃ (ℕ × ℕ) where
   toFun sortOps := (sortOps.compares, sortOps.inserts)
   invFun pair := ⟨pair.1, pair.2⟩
-  left_inv := by
-    intro _
-    rfl
-  right_inv := by
-    intro _
-    rfl
+  left_inv _ := rfl
+  right_inv _ := rfl
+
+namespace SortOpsCost
 
 @[simps, grind]
-instance : Zero SortOpsCost := ⟨0,0⟩
+instance : Zero SortOpsCost := ⟨0, 0⟩
 
 @[simps]
 instance : LE SortOpsCost where
   le soc₁ soc₂ := soc₁.compares ≤ soc₂.compares ∧ soc₁.inserts ≤ soc₂.inserts
 
-@[simps]
 instance : LT SortOpsCost where
-  lt soc₁ soc₂ := soc₁ ≤ soc₂ ∧ (soc₁.compares < soc₂.compares ∨ soc₁.inserts < soc₂.inserts)
+  lt soc₁ soc₂ := soc₁ ≤ soc₂ ∧ ¬soc₂ ≤ soc₁
 
 @[grind]
-instance : PartialOrder SortOpsCost := by
-  apply Function.Injective.partialOrder SortOpsCost.Equiv.toEmbedding
-  · exact SortOpsCost.Equiv.toEmbedding.inj'
-  · rfl
-  · intro x y
-    simp only [lt_def, le_def]
-    refine ⟨?_, ?_⟩
-    · simp only [SortOpsCost.Equiv, Equiv.coe_toEmbedding, Equiv.coe_fn_mk, Prod.mk_lt_mk]
-      rintro (⟨_, _⟩ | ⟨_, _⟩)
-      all_goals grind
-    · simp only [SortOpsCost.Equiv, Equiv.coe_toEmbedding, Equiv.coe_fn_mk, Prod.mk_lt_mk, and_imp]
-      intros
-      all_goals grind
+instance : PartialOrder SortOpsCost :=
+  fast_instance% SortOpsCost.equivProd.injective.partialOrder _ .rfl .rfl
 
 @[simps]
 instance : Add SortOpsCost where
@@ -87,14 +73,11 @@ instance : Add SortOpsCost where
 instance : SMul ℕ SortOpsCost where
   smul (n : ℕ) (soc : SortOpsCost) : SortOpsCost := ⟨n • soc.compares, n • soc.inserts⟩
 
-instance : AddCommMonoid SortOpsCost := by
-  apply Function.Injective.addCommMonoid SortOpsCost.Equiv.toEmbedding
-  · exact SortOpsCost.Equiv.toEmbedding.inj'
-  · rfl
-  · intro ⟨xcomp, xins⟩ ⟨ycomp, yins⟩
-    rfl
-  · intro x n
-    rfl
+instance : AddCommMonoid SortOpsCost :=
+  fast_instance%
+    SortOpsCost.equivProd.injective.addCommMonoid _ rfl (fun _ _ => rfl) (fun _ _ => rfl)
+
+end SortOpsCost
 
 /--
 A model of `SortOps` that uses `SortOpsCost` as the cost type for operations.
@@ -125,11 +108,9 @@ def sortModelNat (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
     | .insertHead _ _ => 1
 
 @[simp]
-lemma sortModelNat_eval_false [LinearOrder α] (y x : α) :
-    y < x → (sortModelNat α).evalQuery (cmpLE x y) = false := by
-  intro h
-  simp only [sortModelNat, decide_eq_false_iff_not, not_le]
-  exact h
+lemma sortModelNat_eval_false [LinearOrder α] (y x : α) (h : y < x) :
+    (sortModelNat α).evalQuery (cmpLE x y) = false := by
+  simp [sortModelNat, h]
 
 end NatModel
 
