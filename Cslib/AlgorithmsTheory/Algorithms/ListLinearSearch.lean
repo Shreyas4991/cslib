@@ -46,13 +46,13 @@ lemma listLinearSearchM_correct_true [DecidableEq α] (l : List α) {x : α} (x_
       split_ifs with h
       · obtain (x_head | xtail) := x_mem_l
         · rw [x_head] at h
-          simp only [ListSearch.natCost, List.head?_cons, decide_true] at h
+          simp only [ListSearch.natCost, List.head?_cons] at h
           simp
         · specialize ih xtail
           simp
       · obtain (x_head | x_tail) := x_mem_l
         · rw [x_head] at h
-          simp [ListSearch.natCost, List.head?_cons, decide_true] at h
+          simp [ListSearch.natCost, List.head?_cons] at h
         · specialize ih x_tail
           simp_all
 
@@ -68,8 +68,7 @@ lemma listLinearSearchM_correct_false [DecidableEq α] (l : List α) {x : α} (x
       simp only [eval, listLinearSearch, bind, FreeM.lift_def, FreeM.pure_eq_pure,
         FreeM.liftBind_bind, FreeM.pure_bind, FreeM.liftM_liftBind]
       split_ifs with h_eq
-      · simp only [pure, ListSearch.natCost, List.head?_cons, Option.some.injEq,
-        decide_eq_true_eq] at h_eq
+      · simp only [pure, ListSearch.natCost, List.head?_cons] at h_eq
         grind
       · assumption
 
