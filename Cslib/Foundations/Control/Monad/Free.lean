@@ -96,7 +96,7 @@ variable {F : Type u → Type v} {ι : Type u} {α : Type w} {β : Type w'} {γ 
 
 instance : Pure (FreeM F) where pure := .pure
 
-@[simp]
+@[simp, grind =]
 theorem pure_eq_pure : (pure : α → FreeM F α) = FreeM.pure := rfl
 
 /-- Bind operation for the `FreeM` monad. -/
@@ -115,7 +115,7 @@ protected theorem bind_assoc (x : FreeM F α) (f : α → FreeM F β) (g : β �
 
 instance : Bind (FreeM F) where bind := .bind
 
-@[simp]
+@[simp, grind =]
 theorem bind_eq_bind {α β : Type w} : Bind.bind = (FreeM.bind : FreeM F α → _ → FreeM F β) := rfl
 
 /-- Map a function over a `FreeM` monad. -/
@@ -168,11 +168,6 @@ lemma bind_pure : ∀ x : FreeM F α, x.bind (.pure) = x
 
 @[simp, grind =]
 lemma bind_pure' : ∀ x : FreeM F α, x >>= .pure = x := bind_pure
-
-@[grind =]
-lemma Prog.pure_bind :
-    FreeM.pure x >>= m = m x := by
-  rfl
 
 @[simp]
 lemma bind_pure_comp (f : α → β) : ∀ x : FreeM F α, x.bind (.pure ∘ f) = map f x

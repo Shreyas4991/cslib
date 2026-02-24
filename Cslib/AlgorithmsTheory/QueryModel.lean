@@ -77,25 +77,24 @@ abbrev Prog Q α := FreeM Q α
 /--
 The evaluation function of a program `P : Prog Q α` given a model `M : Model Q α` of `Q`
 -/
-@[grind]
 def Prog.eval [AddCommMonoid Cost]
     (P : Prog Q α) (M : Model Q Cost) : α :=
   Id.run <| P.liftM fun x => pure (M.evalQuery x)
 
-@[simp]
+@[simp, grind =]
 theorem Prog.eval_pure [AddCommMonoid Cost] (a : α) (M : Model Q Cost) :
     Prog.eval (FreeM.pure a) M = a :=
   rfl
 
 
-@[simp]
+@[simp, grind =]
 theorem Prog.eval_bind
     [AddCommMonoid Cost] (x : Prog Q α) (f : α → Prog Q β) (M : Model Q Cost) :
     Prog.eval (FreeM.bind x f) M =  Prog.eval (f (Prog.eval x M)) M := by
   simp [Prog.eval]
 
 
-@[simp]
+@[simp, grind =]
 theorem Prog.eval_liftBind
     [AddCommMonoid Cost] (x : Q α) (f : α → Prog Q β) (M : Model Q Cost) :
     Prog.eval (FreeM.liftBind x f) M =  Prog.eval (f <| M.evalQuery x) M := by

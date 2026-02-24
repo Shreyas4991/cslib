@@ -31,35 +31,28 @@ def merge (x y : List α) : Prog (SortOps α) (List α) := do
         return (y :: rest)
 
 lemma merge_timeComplexity [LinearOrder α] (x y : List α) :
-    (merge x y).time (sortModelNat α) ≤  x.length + y.length := by
-  fun_induction merge
-  · simp
-  · simp
-  · expose_names
-    simp_all only [Prog.time, pure,
-      List.length_cons, FreeM.lift_def, FreeM.bind_eq_bind, FreeM.liftBind_bind, FreeM.pure_bind,
-      FreeM.liftM_liftBind, bind_assoc, Lean.TimeM.time_bind, Lean.TimeM.time_tick]
-    split_ifs with hxy
-    · simp_all only [FreeM.liftM_bind, FreeM.liftM_pure, bind_pure_comp, Lean.TimeM.time_map]
-      simpa [sortModelNat, Lean.TimeM.pure, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
-        using (Nat.add_le_add_left ih2 1)
-    · simp_all only [Bool.not_eq_true, FreeM.liftM_bind, FreeM.liftM_pure, bind_pure_comp,
-      Lean.TimeM.time_map]
-      simpa [sortModelNat, Lean.TimeM.pure, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
-        using (Nat.add_le_add_left ih1 1)
+    (merge x y).time (sortModelNat α) ≤ x.length + y.length := by
+  fun_induction List.merge x y with
+  | case1 => simp
+  | case2 => simp
+  | case3 x xs y ys hxy ihx =>
+    suffices 1 + (merge xs (y :: ys)).time (sortModelNat α) ≤ xs.length + 1 + (ys.length + 1) by
+      simpa [hxy]
+    grind
+  | case4 x xs y ys hxy ihy =>
+    suffices 1 + (merge (x :: xs) ys).time (sortModelNat α) ≤ xs.length + 1 + (ys.length + 1) by
+      simpa [hxy]
+    grind
 
 lemma merge_eval_eq_listMerge [LinearOrder α] (x y : List α) :
     (merge x y).eval (sortModelNat α) = List.merge x y := by
-  fun_induction List.merge
-  · simp [merge]
-  · simp [merge]
-  · expose_names
-    simp_all [Prog.eval,  merge, sortModelNat]
-  · expose_names
-    simp_all only [decide_eq_true_eq, not_le, Prog.eval, merge, FreeM.lift_def, FreeM.pure_eq_pure,
-      FreeM.bind_eq_bind, FreeM.liftBind_bind, FreeM.pure_bind, FreeM.liftM_liftBind,
-      sortModelNat_eval_false, pure_bind, Bool.false_eq_true, ↓reduceIte, FreeM.liftM_bind,
-      FreeM.liftM_pure, bind_pure_comp, Id.run_map]
+  fun_induction List.merge with
+  | case1 => simp
+  | case2 => simp
+  | case3 x xs y ys ihx ihy => simp_all [merge]
+  | case4 x xs y ys hxy ihx =>
+    rw [decide_eq_true_iff] at hxy
+    simp_all [merge, -not_le]
 
 lemma merge_length [LinearOrder α] (x y : List α) :
     ((merge x y).eval (sortModelNat α)).length = x.length + y.length := by

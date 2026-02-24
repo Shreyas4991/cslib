@@ -99,6 +99,7 @@ section NatModel
 A model of `SortOps` that uses `ℕ` as the type for the cost of operations. In this model,
 both comparisons and insertions are counted in a single `ℕ` parameter.
 -/
+@[simps]
 def sortModelNat (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
   evalQuery
     | .cmpLE x y => decide (x ≤ y)
@@ -106,11 +107,6 @@ def sortModelNat (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
   cost
     | .cmpLE _ _ => 1
     | .insertHead _ _ => 1
-
-@[simp]
-lemma sortModelNat_eval_false [LinearOrder α] (y x : α) (h : y < x) :
-    (sortModelNat α).evalQuery (cmpLE x y) = false := by
-  simp [sortModelNat, h]
 
 end NatModel
 
