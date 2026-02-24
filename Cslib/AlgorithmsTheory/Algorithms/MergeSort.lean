@@ -132,33 +132,33 @@ lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
       have hleft : (mergeSort left).eval (sortModelNat α) = mergeSortNaive left := by grind
       have hright : (mergeSort right).eval (sortModelNat α) = mergeSortNaive right := by grind
       have hleft' :
-          FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q)
-              (mergeSort (xs.take (xs.length / 2))) =
+          Id.run (FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q)
+              (mergeSort (xs.take (xs.length / 2)))) =
             mergeSortNaive (xs.take (xs.length / 2)) := by
         simpa [left, half, Prog.eval] using hleft
       have hright' :
-          FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q)
-              (mergeSort (xs.drop (xs.length / 2))) =
+          Id.run (FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q)
+              (mergeSort (xs.drop (xs.length / 2)))) =
             mergeSortNaive (xs.drop (xs.length / 2)) := by
         simpa [right, half, Prog.eval] using hright
       have hmerge (a b : List α) :
-          FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q) (merge a b) =
+          Id.run (FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q) (merge a b)) =
             mergeNaive a b := by
         simpa [Prog.eval] using (merge_is_mergeNaive (α := α) a b)
       nth_rw 1 [mergeSort, mergeSortNaive]
       simp only [hlt, if_false, Prog.eval, bind, FreeM.liftM_bind]
-      set a := FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q)
+      set a := Id.run <| FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q)
           (mergeSort (List.take (xs.length / 2) xs)) with ha
-      set b := FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q)
+      set b := Id.run <| FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q)
           (mergeSort (List.drop (xs.length / 2) xs)) with hb
       calc
-        FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q)
+        Id.run (FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q)
             (merge
-              (FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q)
+              (Id.run <| FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q)
                 (mergeSort (List.take (xs.length / 2) xs)))
-              (FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q)
-                (mergeSort (List.drop (xs.length / 2) xs)))) =
-            FreeM.liftM (m := Id) (fun {ι} q => (sortModelNat α).evalQuery q) (merge a b) := by
+              (Id.run <| FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q)
+                (mergeSort (List.drop (xs.length / 2) xs))))) =
+            Id.run (FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q) (merge a b)) := by
           simp [a, b]
         _ = mergeNaive a b := by apply hmerge a b
         _ = mergeNaive (mergeSortNaive (List.take (xs.length / 2) xs))
