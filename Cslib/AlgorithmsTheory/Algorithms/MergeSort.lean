@@ -48,7 +48,7 @@ lemma merge_timeComplexity [LinearOrder α] (x y : List α) :
       simpa [sortModelNat, Lean.TimeM.pure, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
         using (Nat.add_le_add_left ih1 1)
 
-lemma merge_eval_eq_list_merge [LinearOrder α] (x y : List α) :
+lemma merge_eval_eq_listMerge [LinearOrder α] (x y : List α) :
     (merge x y).eval (sortModelNat α) = List.merge x y := by
   fun_induction List.merge
   · simp [merge]
@@ -63,7 +63,7 @@ lemma merge_eval_eq_list_merge [LinearOrder α] (x y : List α) :
 
 lemma merge_length [LinearOrder α] (x y : List α) :
     ((merge x y).eval (sortModelNat α)).length = x.length + y.length := by
-  rw [merge_eval_eq_list_merge]
+  rw [merge_eval_eq_listMerge]
   apply List.length_merge
 
 /--
@@ -126,7 +126,7 @@ private lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
       have hmerge (a b : List α) :
           Id.run (FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q) (merge a b)) =
             List.merge a b := by
-        simpa [Prog.eval] using (merge_eval_eq_list_merge (α := α) a b)
+        simpa [Prog.eval] using (merge_eval_eq_listMerge (α := α) a b)
       nth_rw 1 [mergeSort, mergeSortNaive]
       simp only [hlt, if_false, Prog.eval, bind, FreeM.liftM_bind]
       set a := Id.run <| FreeM.liftM (fun {ι} q => (sortModelNat α).evalQuery q)
@@ -186,7 +186,7 @@ lemma mergeSort_length [LinearOrder α] (xs : List α) :
 lemma merge_sorted_sorted [LinearOrder α] (xs ys : List α)
     (hxs_mono : xs.Pairwise (· ≤ ·)) (hys_mono : ys.Pairwise (· ≤ ·)) :
     ((merge xs ys).eval (sortModelNat α)).Pairwise (· ≤ ·) := by
-  rw [merge_eval_eq_list_merge]
+  rw [merge_eval_eq_listMerge]
   grind [List.pairwise_merge]
 
 private lemma mergeSortNaive_sorted [LinearOrder α] (xs : List α) :
