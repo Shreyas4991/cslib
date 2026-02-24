@@ -34,7 +34,7 @@ def listLinearSearch (l : List α) (x : α) : Prog (ListSearch α) Bool := do
       else
         listLinearSearch ls x
 
-lemma listLinearSearchM_correct_true [DecidableEq α] (l : List α) {x : α} (x_mem_l : x ∈ l) :
+lemma listLinearSearchM_correct_true [BEq α] [LawfulBEq α] (l : List α) {x : α} (x_mem_l : x ∈ l) :
     (listLinearSearch l x).eval ListSearch.natCost = true := by
   induction l with
   | nil =>
@@ -51,12 +51,11 @@ lemma listLinearSearchM_correct_true [DecidableEq α] (l : List α) {x : α} (x_
         · specialize ih xtail
           simp
       · obtain (x_head | x_tail) := x_mem_l
-        · rw [x_head] at h
-          simp [ListSearch.natCost, List.head?_cons] at h
+        · simp [x_head, ListSearch.natCost] at h
         · specialize ih x_tail
           simp_all
 
-lemma listLinearSearchM_correct_false [DecidableEq α] (l : List α) {x : α} (x_mem_l : x ∉ l) :
+lemma listLinearSearchM_correct_false [BEq α] [LawfulBEq α] (l : List α) {x : α} (x_mem_l : x ∉ l) :
     (listLinearSearch l x).eval ListSearch.natCost = false := by
   induction l with
   | nil =>
@@ -77,7 +76,7 @@ lemma listLinearSearch_correctness [DecidableEq α] (l : List α) (x : α) :
   · grind [listLinearSearchM_correct_true]
   · grind [listLinearSearchM_correct_false]
 
-lemma listLinearSearchM_time_complexity_upper_bound [DecidableEq α] (l : List α) (x : α) :
+lemma listLinearSearchM_time_complexity_upper_bound [BEq α] (l : List α) (x : α) :
   (listLinearSearch l x).time ListSearch.natCost ≤ 1 + l.length := by
   induction l with
   | nil =>
