@@ -84,13 +84,13 @@ theorem insertOrd_complexity_upper_bound [LinearOrder α] :
       obtain ⟨ih_compares, ih_inserts⟩ := ih
       simp only [time, bind_pure_comp, insertOrd, FreeM.lift_def, FreeM.bind_eq_bind,
         FreeM.liftBind_bind, FreeM.pure_bind, FreeM.liftM_liftBind, bind_map_left,
-        Lean.TimeM.time_bind, AddSortOps_add, List.length_cons, le_def, add_compares, add_inserts]
+        Lean.TimeM.time_bind, List.length_cons, le_def]
       split_ifs with h_head
       · constructor <;> simp_all
       · constructor
-        · simp_all only [time, bind_pure_comp, Bool.not_eq_true, Lean.TimeM.time_tick,
-          cost_cmpLT_compares, FreeM.liftM_bind, FreeM.liftM_liftBind, FreeM.liftM_pure, bind_pure,
-          Lean.TimeM.time_bind, Lean.TimeM.time_map, AddSortOps_add, add_compares,
+        · simp_all only [time, Bool.not_eq_true, Lean.TimeM.time_tick, FreeM.liftM_bind,
+          FreeM.liftM_liftBind, bind_pure_comp, FreeM.liftM_pure, bind_pure, Lean.TimeM.time_bind,
+          Lean.TimeM.time_map, AddSortOps_add_compares, cost_cmpLT_compares,
           cost_insertHead_compares, add_zero]
           grind
         · simp_all
