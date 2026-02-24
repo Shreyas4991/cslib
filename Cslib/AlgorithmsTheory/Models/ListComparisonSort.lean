@@ -99,6 +99,7 @@ instance : AddCommMonoid SortOpsCost := by
 /--
 A model of `SortOps` that uses `SortOpsCost` as the cost type for operations.
 -/
+@[simps, grind]
 def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) SortOpsCost where
   evalQuery
     | .cmpLE x y => decide (x ≤ y)
@@ -106,35 +107,6 @@ def sortModel (α : Type) [LinearOrder α] : Model (SortOps α) SortOpsCost wher
   cost
     | .cmpLE _ _ => ⟨1,0⟩
     | .insertHead _ _ => ⟨0,1⟩
-
-@[grind =]
-lemma SortModel_cmpquery_iff [LinearOrder α] (x y : α) :
-    (sortModel α).evalQuery (cmpLE x y) ↔ x ≤ y := by
-  simp [sortModel]
-
-@[grind =]
-lemma SortModel_insertHeadquery_iff [LinearOrder α] (l : List α) (x : α) :
-    (sortModel α).evalQuery (insertHead x l) = x :: l := by
-  simp [sortModel]
-
-@[simp]
-lemma cost_cmpLT_compares [LinearOrder α] : ((sortModel α).2 (cmpLE head x)).compares = 1 := by
-  simp [sortModel]
-
-@[simp]
-lemma cost_cmpLT_inserts [LinearOrder α] :
-    ((sortModel α).2 (cmpLE head x)).inserts = 0 := by
-  simp [sortModel]
-
-@[simp]
-lemma cost_insertHead_compares [LinearOrder α] :
-    ((sortModel α).2 (insertHead x l)).compares = 0 := by
-  simp [sortModel]
-
-@[simp]
-lemma cost_insertHead_inserts [LinearOrder α] :
-    ((sortModel α).2 (insertHead x l)).inserts = 1 := by
-  simp [sortModel]
 
 end SortOpsCostModel
 
@@ -153,7 +125,7 @@ def sortModelNat (α : Type) [LinearOrder α] : Model (SortOps α) ℕ where
     | .insertHead _ _ => 1
 
 @[simp]
-lemma sortModelNat_eval_1 [LinearOrder α] (y x : α) :
+lemma sortModelNat_eval_false [LinearOrder α] (y x : α) :
     y < x → (sortModelNat α).evalQuery (cmpLE x y) = false := by
   intro h
   simp only [sortModelNat, decide_eq_false_iff_not, not_le]

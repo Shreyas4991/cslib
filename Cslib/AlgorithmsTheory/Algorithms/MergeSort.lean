@@ -77,7 +77,10 @@ lemma merge_is_mergeNaive [LinearOrder α] (x y : List α) :
   · expose_names
     simp_all [Prog.eval,  merge, rest, sortModelNat]
   · expose_names
-    simp_all [Prog.eval, merge, rest]
+    simp_all only [not_le, Prog.eval, merge, FreeM.lift_def, FreeM.pure_eq_pure, FreeM.bind_eq_bind,
+      FreeM.liftBind_bind, FreeM.pure_bind, FreeM.liftM_liftBind, sortModelNat_eval_false,
+      pure_bind, Bool.false_eq_true, ↓reduceIte, FreeM.liftM_bind, FreeM.liftM_pure, bind_pure_comp,
+      Id.run_map, rest]
 
 lemma merge_length [LinearOrder α] (x y : List α) :
     ((merge x y).eval (sortModelNat α)).length = x.length + y.length := by

@@ -64,7 +64,7 @@ lemma insertionSort_length [LinearOrder α] (l : List α) :
       simp [insertionSort]
   | cons head tail ih =>
       have h := insertOrd_length (x := head) ((insertionSort tail).eval (sortModel α))
-      simp only [eval] at ih
+      simp only [eval, sortModel_evalQuery] at ih
       simpa [insertionSort, ih] using h
 
 theorem insertionSort_complexity [LinearOrder α] (l : List α) :
