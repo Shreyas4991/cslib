@@ -19,7 +19,6 @@ namespace Algorithms
 
 open Prog
 
-
 open ListSearch in
 /--
 Linear Search in Lists on top of the `ListSearch` query model.
