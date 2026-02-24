@@ -56,7 +56,6 @@ lemma listLinearSearchM_correct_true [DecidableEq α] (l : List α) {x : α} (x_
         · specialize ih x_tail
           simp_all
 
-
 lemma listLinearSearchM_correct_false [DecidableEq α] (l : List α) {x : α} (x_mem_l : x ∉ l) :
     (listLinearSearch l x).eval ListSearch.natCost = false := by
   induction l with
