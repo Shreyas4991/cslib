@@ -34,8 +34,9 @@ def listLinearSearch (l : List α) (x : α) : Prog (ListSearch α) Bool := do
       else
         listLinearSearch ls x
 
+@[grind =]
 lemma listLinearSearchM_correct_true [DecidableEq α] (l : List α) {x : α} (x_mem_l : x ∈ l) :
-    (listLinearSearch l x).eval ListSearch_Nat = true := by
+    (listLinearSearch l x).eval ListSearch.natCost = true := by
   induction l with
   | nil =>
       simp_all only [List.not_mem_nil]
@@ -45,18 +46,19 @@ lemma listLinearSearchM_correct_true [DecidableEq α] (l : List α) {x : α} (x_
       split_ifs with h
       · obtain (x_head | xtail) := x_mem_l
         · rw [x_head] at h
-          simp only [ListSearch_Nat, List.head?_cons, decide_true] at h
+          simp only [ListSearch.natCost, List.head?_cons, decide_true] at h
           simp
         · specialize ih xtail
           simp
       · obtain (x_head | x_tail) := x_mem_l
         · rw [x_head] at h
-          simp [ListSearch_Nat, List.head?_cons, decide_true] at h
+          simp [ListSearch.natCost, List.head?_cons, decide_true] at h
         · specialize ih x_tail
           simp_all
 
+@[grind =]
 lemma listLinearSearchM_correct_false [DecidableEq α] (l : List α) {x : α} (x_mem_l : x ∉ l) :
-    (listLinearSearch l x).eval ListSearch_Nat = false := by
+    (listLinearSearch l x).eval ListSearch.natCost = false := by
   induction l with
   | nil =>
       simp_all [listLinearSearch, eval]
@@ -66,27 +68,33 @@ lemma listLinearSearchM_correct_false [DecidableEq α] (l : List α) {x : α} (x
       simp only [eval, listLinearSearch, bind, FreeM.lift_def, FreeM.pure_eq_pure,
         FreeM.liftBind_bind, FreeM.pure_bind, FreeM.liftM_liftBind]
       split_ifs with h_eq
-      · simp only [pure, ListSearch_Nat, List.head?_cons, Option.some.injEq,
+      · simp only [pure, ListSearch.natCost, List.head?_cons, Option.some.injEq,
         decide_eq_true_eq] at h_eq
         grind
       · assumption
 
+lemma listLinearSearch_correctness [DecidableEq α] (l : List α) (x : α) :
+  (listLinearSearch l x).eval ListSearch.natCost = l.contains x := by
+  by_cases hlx : l.contains x
+  · grind
+  · grind
+
 lemma listLinearSearchM_time_complexity_upper_bound [DecidableEq α] (l : List α) (x : α) :
-  (listLinearSearch l x).time ListSearch_Nat ≤ 1 + l.length := by
+  (listLinearSearch l x).time ListSearch.natCost ≤ 1 + l.length := by
   induction l with
   | nil =>
-      simp_all [listLinearSearch, ListSearch_Nat, time]
+      simp_all [listLinearSearch, ListSearch.natCost, time]
   | cons head tail ih =>
-      simp_all [listLinearSearch, ListSearch_Nat]
+      simp_all [listLinearSearch, ListSearch.natCost]
       split_ifs with h_head
       · simp
       · grind
 
 lemma listLinearSearchM_time_complexity_lower_bound [DecidableEq α] [inon : Nontrivial α] :
-    ∃ l : List α, ∃ x : α, (listLinearSearch l x).time ListSearch_Nat = l.length := by
+    ∃ l : List α, ∃ x : α, (listLinearSearch l x).time ListSearch.natCost = l.length := by
   obtain ⟨x, y, x_neq_y⟩ := inon
   use [x,x,x,x,x,y], y
-  simp_all [ListSearch_Nat, listLinearSearch]
+  simp_all [ListSearch.natCost, listLinearSearch]
 
 end Algorithms
 

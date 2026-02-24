@@ -30,7 +30,7 @@ inductive ListSearch (α : Type) : Type → Type  where
 /--
 A model of the `ListSearch` query type that assigns costs to the queries in `ℕ`
 -/
-def ListSearch_Nat [DecidableEq α] : Model (ListSearch α) ℕ where
+def ListSearch.natCost [DecidableEq α] : Model (ListSearch α) ℕ where
   evalQuery
     | .compare l x => l.head? = some x
   cost
