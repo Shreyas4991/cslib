@@ -41,7 +41,8 @@ lemma listLinearSearchM_correct_true [DecidableEq α] (l : List α) {x : α} (x_
       simp_all only [List.not_mem_nil]
   | cons head tail ih =>
       simp_all only [eval, List.mem_cons, listLinearSearch, FreeM.lift_def, FreeM.pure_eq_pure,
-        FreeM.bind_eq_bind, FreeM.liftBind_bind, FreeM.pure_bind, FreeM.liftM_liftBind, pure_bind]
+        FreeM.bind_eq_bind, FreeM.liftBind_bind, FreeM.pure_bind, FreeM.liftM_liftBind,
+        LawfulMonad.pure_bind]
       split_ifs with h
       · obtain (x_head | xtail) := x_mem_l
         · rw [x_head] at h

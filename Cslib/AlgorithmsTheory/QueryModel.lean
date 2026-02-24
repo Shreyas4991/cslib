@@ -91,14 +91,13 @@ def Prog.time [AddCommMonoid Cost]
   (P.liftM M.timeQuery).time
 
 @[grind =]
-lemma Prog.time.bind_pure [AddCommMonoid Cost] (M : Model Q Cost) :
-    Prog.time (op >>= FreeM.pure) M = (Prog.time op M) := by
+lemma Prog.bind_pure :
+    op >>= FreeM.pure = op := by
   simp only [bind, FreeM.bind_pure]
 
 @[grind =]
-lemma Prog.time.pure_bind
-    [AddCommMonoid Cost] (M : Model Q Cost) :
-    Prog.time (FreeM.pure x >>= m) M = (m x).time M := by
+lemma Prog.pure_bind :
+    FreeM.pure x >>= m = m x := by
   rfl
 
 @[grind =]
