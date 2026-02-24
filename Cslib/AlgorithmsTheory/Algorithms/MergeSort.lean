@@ -83,14 +83,14 @@ def mergeSort (xs : List α) : Prog (SortOps α) (List α) :=  do
 /--
 The vanilla-lean version of `mergeSortNaive` that is extensionally equal to `mergeSort`
 -/
-def mergeSortNaive [LinearOrder α] (xs : List α) : List α :=
+private def mergeSortNaive [LinearOrder α] (xs : List α) : List α :=
   if xs.length < 2 then xs
   else
     let sortedLeft  := mergeSortNaive (xs.take (xs.length/2))
     let sortedRight := mergeSortNaive (xs.drop (xs.length/2))
     List.merge sortedLeft sortedRight
 
-lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
+private lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
     (mergeSort xs).eval (sortModelNat α) = mergeSortNaive xs := by
   classical
   let P : Nat → Prop :=
@@ -149,7 +149,7 @@ lemma mergeSort_is_mergeSortNaive [LinearOrder α] (xs : List α) :
       rfl
   exact hP xs rfl
 
-lemma mergeSortNaive_length [LinearOrder α] (xs : List α) :
+private lemma mergeSortNaive_length [LinearOrder α] (xs : List α) :
     (mergeSortNaive xs).length = xs.length := by
   let P : Nat → Prop :=
     fun n => ∀ ys : List α, ys.length = n → (mergeSortNaive ys).length = ys.length
@@ -189,7 +189,7 @@ lemma merge_sorted_sorted [LinearOrder α] (xs ys : List α)
   rw [merge_eval_eq_list_merge]
   grind [List.pairwise_merge]
 
-lemma mergeSortNaive_sorted [LinearOrder α] (xs : List α) :
+private lemma mergeSortNaive_sorted [LinearOrder α] (xs : List α) :
     (mergeSortNaive xs).Pairwise (· ≤ ·) := by
   let P : Nat → Prop :=
     fun n => ∀ ys : List α, ys.length = n → (mergeSortNaive ys).Pairwise (· ≤ ·)
