@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2025 Tanner Duve. All rights reserved.
+Copyright (c) 2026 Shreyas Srinivas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Tanner Duve, Eric Wieser
+Authors: Shreyas Srinivas, Eric Wieser
 -/
 
 module
@@ -13,6 +13,24 @@ import all Cslib.AlgorithmsTheory.Lean.MergeSort.MergeSort
 import all Init.Data.List.Sort.Basic
 @[expose] public section
 
+/-!
+# Merge sort in a list
+
+In this file we state and prove the correctness and complexity of merge sort in lists under
+the `SortOps` model.
+--
+
+## Main Definitions
+- `merge` : Merge algorithm for merging two sorted lists in the `SortOps` query model
+- `mergeSort` : Merge sort algorithm in the `SortOps` query model
+
+## Main results
+
+- `mergeSort_eval`: `mergeSort` evaluates identically to the priva.
+- `mergeSort_sorted` :  `mergeSort` outputs a sorted list.
+- `mergeSort_perm` : The output of `mergeSort` is a permutation of the input list
+- `mergeSort_complexity` : `mergeSort` takes at most n * log n comparisons.
+-/
 namespace Cslib.Algorithms
 
 open SortOpsCmp
