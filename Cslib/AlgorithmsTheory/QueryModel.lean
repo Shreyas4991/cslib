@@ -20,25 +20,24 @@ parametric type of query operations.
 
 ## Main definitions
 
-- `PureCosts`  : A typeclass that every model needs to log or cost pure monadic operations
-- `Model Q c` : A model type for a query type `Q : Type u → Type u` and cost type `c`
-- `Prog Q α` : The type of programs of query type `Q` and return type `α`. This is a free monad
-      under the hood
-- `eval`, `time` : concrete execution semantics of a `Prog Q α` for a given model of `Q`
+- `Model Q c`: A model type for a query type `Q : Type u → Type u` and cost type `c`
+- `Prog Q α`: The type of programs of query type `Q` and return type `α`.
+  This is a free monad under the hood
+- `Prog.eval`, `Prog.time`: concrete execution semantics of a `Prog Q α` for a given model of `Q`
 
 ## How to set up an algorithm
 
 This model is a lightweight framework for specifying and verifying both the correctness
 and complexity of algorithms in lean. To specify an algorithm, one must:
 1. Define an inductive type of queries. This type must at least one index parameter
-  which determines the output type of the query. Additionally, it helps to have a parameter `α`
-  on which the index type depends. This way, any instance parameters of `α` can be used easily
-  for the output types. The signatures of `Model.evalQuery` and `Model.cost` are fixed.
-  So you can't supply instances for the index type there.
+   which determines the output type of the query. Additionally, it helps to have a parameter `α`
+   on which the index type depends. This way, any instance parameters of `α` can be used easily
+   for the output types. The signatures of `Model.evalQuery` and `Model.cost` are fixed.
+   So you can't supply instances for the index type there.
 2. Define a record of the  `Model Q C` structure that specifies the evaluation and time (cost) of
-  each query
+   each query
 3. Write your algorithm as a monadic program in `Prog Q α`. With sufficient type anotations
-  each query `q : Q` is automatically lifted into `Prog Q α`.
+   each query `q : Q` is automatically lifted into `Prog Q α`.
 
 ## Tags
 query model, free monad, time complexity, Prog
@@ -53,11 +52,11 @@ A model type for a query type `QType` and cost type `Cost`. It consists of
 two fields, which respectively define the evaluation and cost of a query.
 -/
 structure Model (QType : Type u → Type u) (Cost : Type) [AddCommMonoid Cost] where
-  /-- Evaluates a query `q : Q ι` to return a result of type `ι` -/
+  /-- Evaluates a query `q : Q ι` to return a result of type `ι`. -/
   evalQuery : QType ι → ι
   /-- Counts the operational cost of a query `q : Q ι` to return a result of type `Cost`.
   The cost could represent any desired complexity measure,
-  including but not limited to time complexity -/
+  including but not limited to time complexity. -/
   cost : QType ι → Cost
 
 open Cslib.Algorithms.Lean in
@@ -132,9 +131,7 @@ lemma Prog.time_bind [AddCommMonoid Cost] (M : Model Q Cost)
 
 section Reduction
 
-/--
-A reduction structure from query type `Q₁` to query type `Q₂`.
--/
+/-- A reduction structure from query type `Q₁` to query type `Q₂`. -/
 structure Reduction (Q₁ Q₂ : Type u → Type u) where
   /-- `reduce (q : Q₁ α)` is a program `P : Prog Q₂ α` that is intended to
   implement `q` in the query type `Q₂` -/
@@ -142,7 +139,7 @@ structure Reduction (Q₁ Q₂ : Type u → Type u) where
 
 /--
 `Prog.reduceProg` takes a reduction structure from a query `Q₁` to `Q₂` and extends its
-`reduce` function to programs on the query type `Q₁`
+`reduce` function to programs on the query type `Q₁`.
 -/
 abbrev Prog.reduceProg (P : Prog Q₁ α) (red : Reduction Q₁ Q₂) : Prog Q₂ α :=
   P.liftM red.reduce
