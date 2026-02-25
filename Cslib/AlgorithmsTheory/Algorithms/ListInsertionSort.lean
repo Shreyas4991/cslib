@@ -26,8 +26,7 @@ the `SortOps` model. This insertionSort evaluates identically to the upstream ve
 ## Main results
 
 - `insertionSort_eval`: `insertionSort` evaluates identically to `List.insertionSort`.
-- `insertionSort_permutation` :  The list output by insertion sort is a permutation of the input
-  list.
+- `insertionSort_permutation` :  `insertionSort` outputs a permutation of the input list.
 - `insertionSort_sorted` : `insertionSort` outputs a sorted list.
 - `insertionSort_complexity` : `insertionSort` takes at most n * (n + 1) comparisons and
   (n + 1) * (n + 2) list head-insertions.
