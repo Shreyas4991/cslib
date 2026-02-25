@@ -97,6 +97,15 @@ end SortOpsCostModel
 section NatModel
 
 /--
+A model for comparison sorting on lists with only the comparison operation. This
+is used in mergeSort
+-/
+inductive SortOpsNat (α : Type) : Type → Type  where
+  /-- `cmpLE x y` is intended to return `true` if `x ≤ y` and `false` otherwise.
+  The specific order relation depends on the model provided for this typ. e-/
+  | cmpLE (x : α) (y : α) : SortOpsNat α Bool
+
+/--
 A model of `SortOps` that uses `ℕ` as the type for the cost of operations. In this model,
 both comparisons and insertions are counted in a single `ℕ` parameter.
 
@@ -104,13 +113,11 @@ While this accepts any decidable relation `le`, most sorting algorithms are only
 presence of `[Std.Total le] [IsTrans _ le]`.
 -/
 @[simps]
-def sortModelNat {α : Type} (le : α → α → Prop) [DecidableRel le] : Model (SortOps α) ℕ where
+def sortModelNat {α : Type} (le : α → α → Prop) [DecidableRel le] : Model (SortOpsNat α) ℕ where
   evalQuery
     | .cmpLE x y => decide (le x y)
-    | .insertHead x l => x :: l
   cost
     | .cmpLE _ _ => 1
-    | .insertHead _ _ => 1
 
 end NatModel
 
