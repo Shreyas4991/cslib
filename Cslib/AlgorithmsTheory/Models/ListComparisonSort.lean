@@ -10,11 +10,30 @@ public import Cslib.AlgorithmsTheory.QueryModel
 
 @[expose] public section
 
+/-!
+# Query Type for Comparison Search in Lists
+
+In this file we define two query types `SortOps` which is suitable for insertion sort, and
+`SortOps`for comparison based searching in Lists. We define a model `sortModel` for `SortOps`
+which uses a custom cost structure `SortOpsCost`. We define a model `sortModelCmp` for `SortOpsCmp`
+which defines a `ℕ` based cost structure.
+--
+## Definitions
+
+- `SortOps`: A query type for comparison based sorting in lists which includes queries for
+  comparison and head-insertion into Lists. This is a suitable query for ordered insertion
+  and insertion sort.
+- `SortOpsCmp`:  A query type for comparison based sorting that only includes a comparison query.
+  This is more suitable for comparison based sorts for which it is only desirable to count
+  comparisons
+
+-/
 namespace Cslib
 
 namespace Algorithms
 
 open Prog
+
 /--
 A model for comparison sorting on lists.
 -/
@@ -100,10 +119,10 @@ section NatModel
 A model for comparison sorting on lists with only the comparison operation. This
 is used in mergeSort
 -/
-inductive SortOpsNat (α : Type) : Type → Type  where
+inductive SortOpsCmp (α : Type) : Type → Type  where
   /-- `cmpLE x y` is intended to return `true` if `x ≤ y` and `false` otherwise.
   The specific order relation depends on the model provided for this typ. e-/
-  | cmpLE (x : α) (y : α) : SortOpsNat α Bool
+  | cmpLE (x : α) (y : α) : SortOpsCmp α Bool
 
 /--
 A model of `SortOps` that uses `ℕ` as the type for the cost of operations. In this model,
@@ -113,7 +132,8 @@ While this accepts any decidable relation `le`, most sorting algorithms are only
 presence of `[Std.Total le] [IsTrans _ le]`.
 -/
 @[simps]
-def sortModelNat {α : Type} (le : α → α → Prop) [DecidableRel le] : Model (SortOpsNat α) ℕ where
+def sortModelNat {α : Type}
+    (le : α → α → Prop) [DecidableRel le] : Model (SortOpsCmp α) ℕ where
   evalQuery
     | .cmpLE x y => decide (le x y)
   cost
