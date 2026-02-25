@@ -12,6 +12,28 @@ public import Mathlib
 
 @[expose] public section
 
+/-!
+# Ordered insertion in a list
+
+In this file we state and prove the correctness and complexity of ordered insertions in lists under
+the `SortOps` model. This ordered insert is later used in `insertionSort` mirroring the structure
+in upstream libraries for the pure lean code versions of these declarations.
+
+--
+
+## Main Definitions
+
+- `insertOrd` : ordered insert algorithm in the `SortOps` query model
+
+## Main results
+
+- `insertOrd_eval`: `insertOrd` evaluates identically to `List.orderedInsert`.
+- `mergeSort_time` :  The number of comparisons of `mergeSort` is at most `n*⌈log₂ n⌉`.
+- `insertOrd_complexity_upper_bound` : Shows that `insertOrd` takes at most `n` comparisons,
+    and `n + 1` list head-insertion operations.
+- `insertOrd_sorted` : Applying `insertOrd` to a sorted list yields a sorted list.
+-/
+
 namespace Cslib
 namespace Algorithms
 
