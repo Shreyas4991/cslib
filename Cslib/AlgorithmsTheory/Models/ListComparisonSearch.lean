@@ -37,7 +37,7 @@ A query type for searching elements in list. It supports exactly one query
 `compare l val` which returns `true` if the head of the list `l` is equal to `val`
 and returns `false` otherwise.
 -/
-inductive ListSearch (α : Type) : Type → Type  where
+inductive ListSearch (α : Type*) : Type → Type _ where
   | compare (a : List α) (val : α) : ListSearch α Bool
 
 

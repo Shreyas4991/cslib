@@ -23,15 +23,15 @@ The complexity of this query depends on the search algorithm used. This means
 we can define two separate models for modelling situations where linear search
 or binary search is used.
 -/
-inductive ListOps (α : Type) : Type → Type  where
+inductive ListOps (α : Type u) : Type u → Type _ where
   | get (l : List α) (i : Fin l.length) : ListOps α α
-  | find (l : List α) (elem : α) : ListOps α ℕ
+  | find (l : List α) (elem : α) : ListOps α (ULift ℕ)
   | write (l : List α) (i : Fin l.length) (x : α) : ListOps α (List α)
 
 def ListOps.linSearchWorstCase [DecidableEq α] : Model (ListOps α) ℕ where
   evalQuery
     | .write l i x => l.set i x
-    | .find l elem =>  l.findIdx (· = elem)
+    | .find l elem => l.findIdx (· = elem)
     | .get l i => l[i]
   cost
     | .write l i x => l.length
@@ -48,9 +48,9 @@ def ListOps.binSearchWorstCase [BEq α] : Model (ListOps α) ℕ where
     | .write l i x => l.length
     | .get l x => l.length
 
-inductive ArrayOps (α : Type) : Type → Type  where
+inductive ArrayOps (α : Type u) : Type u → Type _ where
   | get (l : Array α) (i : Fin l.size) : ArrayOps α α
-  | find (l : Array α) (x : α) : ArrayOps α ℕ
+  | find (l : Array α) (x : α) : ArrayOps α (ULift ℕ)
   | write (l : Array α) (i : Fin l.size) (x : α) : ArrayOps α (Array α)
 
 def ArrayOps.binSearchWorstCase [BEq α] : Model (ArrayOps α) ℕ where

@@ -18,7 +18,7 @@ namespace Prog
 
 section ProgExamples
 
-inductive Arith (α : Type) : Type → Type where
+inductive Arith (α : Type u) : Type u → Type _ where
   | add (x y : α) : Arith α α
   | mul (x y : α) : Arith α α
   | neg (x : α) : Arith α α
@@ -43,9 +43,11 @@ def ex1 : Prog (Arith α) α := do
   add w z
 
 /-- The array version of the sort operations. -/
-inductive VecSortOps (α : Type) : Type → Type where
+inductive VecSortOps.{u} (α : Type u) : Type u → Type _ where
   | swap (a : Vector α n) (i j : Fin n) : VecSortOps α (Vector α n)
-  | cmp (a : Vector α n) (i j : Fin n) : VecSortOps α Bool
+  -- Note that we have to ULift the result to fit this in the same universe as the other types.
+  -- We can avoid this only by forcing everything to be in `Type 0`.
+  | cmp (a : Vector α n) (i j : Fin n) : VecSortOps α (ULift Bool)
   | write (a : Vector α n) (i : Fin n) (x : α) : VecSortOps α (Vector α n)
   | read (a : Vector α n) (i : Fin n) : VecSortOps α α
   | push (a : Vector α n) (elem : α) : VecSortOps α (Vector α (n + 1))
@@ -53,7 +55,7 @@ inductive VecSortOps (α : Type) : Type → Type where
 def VecSortOps.worstCase [DecidableEq α] : Model (VecSortOps α) ℕ where
   evalQuery
     | .write v i x => v.set i x
-    | .cmp l i j => l[i] == l[j]
+    | .cmp l i j => .up <| l[i] == l[j]
     | .read l i => l[i]
     | .swap l i j => l.swap i j
     | .push a elem => a.push elem
@@ -67,7 +69,7 @@ def VecSortOps.worstCase [DecidableEq α] : Model (VecSortOps α) ℕ where
 def VecSortOps.cmpSwap [DecidableEq α] : Model (VecSortOps α) ℕ where
   evalQuery
     | .write v i x => v.set i x
-    | .cmp l i j =>  l[i] == l[j]
+    | .cmp l i j => .up <| l[i] == l[j]
     | .read l i => l[i]
     | .swap l i j => l.swap i j
     | .push a elem => a.push elem
@@ -84,7 +86,7 @@ def simpleExample (v : Vector ℤ n) (i k : Fin n) :
   let elem ← read c i
   push c elem
 
-inductive VecSearch (α : Type) : Type → Type  where
+inductive VecSearch (α : Type u) : Type → Type _ where
   | compare (a : Vector α n) (i : ℕ) (val : α) : VecSearch α Bool
 
 def VecSearch.nat [DecidableEq α] : Model (VecSearch α) ℕ where

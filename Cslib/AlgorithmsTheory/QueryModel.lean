@@ -51,7 +51,7 @@ namespace Algorithms
 A model type for a query type `QType` and cost type `Cost`. It consists of
 two fields, which respectively define the evaluation and cost of a query.
 -/
-structure Model (QType : Type u → Type u) (Cost : Type) where
+structure Model (QType : Type u → Type v) (Cost : Type w) where
   /-- Evaluates a query `q : Q ι` to return a result of type `ι`. -/
   evalQuery : QType ι → ι
   /-- Counts the operational cost of a query `q : Q ι` to return a result of type `Cost`.

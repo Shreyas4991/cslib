@@ -119,7 +119,7 @@ section NatModel
 A model for comparison sorting on lists with only the comparison operation. This
 is used in mergeSort
 -/
-inductive SortOpsCmp (α : Type) : Type → Type  where
+inductive SortOpsCmp.{u} (α : Type u) : Type → Type _ where
   /-- `cmpLE x y` is intended to return `true` if `x ≤ y` and `false` otherwise.
   The specific order relation depends on the model provided for this typ. e-/
   | cmpLE (x : α) (y : α) : SortOpsCmp α Bool
@@ -132,7 +132,7 @@ While this accepts any decidable relation `le`, most sorting algorithms are only
 presence of `[Std.Total le] [IsTrans _ le]`.
 -/
 @[simps]
-def sortModelNat {α : Type}
+def sortModelNat {α : Type*}
     (le : α → α → Prop) [DecidableRel le] : Model (SortOpsCmp α) ℕ where
   evalQuery
     | .cmpLE x y => decide (le x y)
