@@ -53,6 +53,7 @@ inductive VecSortOps.{u} (α : Type u) : Type u → Type _ where
   | push (a : Vector α n) (elem : α) : VecSortOps α (Vector α (n + 1))
 
 /-- The typical means of evaluating a `VecSortOps`. -/
+@[simp]
 def VecSortOps.eval [BEq α] : VecSortOps α β → β
   | .write v i x => v.set i x
   | .cmp l i j => .up <| l[i] == l[j]
@@ -60,6 +61,7 @@ def VecSortOps.eval [BEq α] : VecSortOps α β → β
   | .swap l i j => l.swap i j
   | .push a elem => a.push elem
 
+@[simps]
 def VecSortOps.worstCase [DecidableEq α] : Model (VecSortOps α) ℕ where
   evalQuery := VecSortOps.eval
   cost
@@ -69,6 +71,7 @@ def VecSortOps.worstCase [DecidableEq α] : Model (VecSortOps α) ℕ where
     | .swap _ _ _ => 1
     | .push _ _ => 2 -- amortized over array insertion and resizing by doubling
 
+@[simps]
 def VecSortOps.cmpSwap [DecidableEq α] : Model (VecSortOps α) ℕ where
   evalQuery := VecSortOps.eval
   cost
@@ -87,6 +90,7 @@ def simpleExample (v : Vector ℤ n) (i k : Fin n) :
 inductive VecSearch (α : Type u) : Type → Type _ where
   | compare (a : Vector α n) (i : ℕ) (val : α) : VecSearch α Bool
 
+@[simps]
 def VecSearch.nat [DecidableEq α] : Model (VecSearch α) ℕ where
   evalQuery
     | .compare l i x => l[i]? == some x
