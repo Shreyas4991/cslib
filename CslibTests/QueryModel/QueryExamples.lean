@@ -43,30 +43,25 @@ def ListOps.binSearchWorstCase [BEq α] : Model (ListOps α) ℕ where
     | .write l i x => l.set i x
     | .get l i => l[i]
     | .find l elem => l.findIdx (· == elem)
-
   cost
     | .find l _ => 1 + Nat.log 2 (l.length)
     | .write l i x => l.length
     | .get l x => l.length
 
 inductive ArrayOps (α : Type) : Type → Type  where
-  | get : (l : Array α) → (i : Fin l.size) → ArrayOps α α
-  | find :  (l : Array α) → α → ArrayOps α ℕ
-  | write : (l : Array α) → (i : Fin l.size) →  (x : α) → ArrayOps α (Array α)
-
+  | get (l : Array α) (i : Fin l.size) : ArrayOps α α
+  | find (l : Array α) (x : α) : ArrayOps α ℕ
+  | write (l : Array α) (i : Fin l.size) (x : α) : ArrayOps α (Array α)
 
 def ArrayOps.binSearchWorstCase [BEq α] : Model (ArrayOps α) ℕ where
   evalQuery
     | .write l i x => l.set i x
     | .get l i => l[i]
     | .find l elem => l.findIdx (· == elem)
-
   cost
     | .find l _ => 1 + Nat.log 2 (l.size)
     | .write l i x => 1
     | .get l x => 1
-
-
 
 end Examples
 
