@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2025 Shreyas Srinivas. All rights reserved.
+Copyright (c) 2026 Shreyas Srinivas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shreyas Srinivas, Eric Wieser
 -/
@@ -36,12 +36,12 @@ lemma listLinearSearch_eval [BEq α] (l : List α) (x : α) :
     (listLinearSearch l x).eval ListSearch.natCost = l.contains x := by
   fun_induction l.elem x with simp_all [listLinearSearch]
 
-lemma listLinearSearchM_correct_true [BEq α] [LawfulBEq α] (l : List α) {x : α} (x_mem_l : x ∈ l) :
-    (listLinearSearch l x).eval ListSearch.natCost = true := by
+lemma listLinearSearchM_correct_true [BEq α] [LawfulBEq α] (l : List α)
+    {x : α} (x_mem_l : x ∈ l) : (listLinearSearch l x).eval ListSearch.natCost = true := by
   simp [x_mem_l]
 
-lemma listLinearSearchM_correct_false [BEq α] [LawfulBEq α] (l : List α) {x : α} (x_mem_l : x ∉ l) :
-    (listLinearSearch l x).eval ListSearch.natCost = false := by
+lemma listLinearSearchM_correct_false [BEq α] [LawfulBEq α] (l : List α)
+    {x : α} (x_mem_l : x ∉ l) : (listLinearSearch l x).eval ListSearch.natCost = false := by
   simp [x_mem_l]
 
 lemma listLinearSearchM_time_complexity_upper_bound [BEq α] (l : List α) (x : α) :
