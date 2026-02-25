@@ -11,6 +11,29 @@ public import Mathlib
 
 @[expose] public section
 
+/-!
+# Insertion sort in a list
+
+In this file we state and prove the correctness and complexity of insertion sort in lists under
+the `SortOps` model. This insertionSort evaluates identically to the upstream version of
+`List.insertionSort`
+--
+
+## Main Definitions
+
+- `insertionSort` : Insertion sort algorithm in the `SortOps` query model
+
+## Main results
+
+- `insertionSort_eval`: `insertionSort` evaluates identically to `List.insertionSort`.
+- `insertionSort_permutation` :  The list output by insertion sort is a permutation of the input
+  list.
+- `insertionSort_sorted` : The list output by insertion sort is sorted.
+- `insertOrd_sorted` : Applying `insertOrd` to a sorted list yields a sorted list.
+- `insertionSort_complexity` : insertion sort takes at most n * (n + 1) comparisons and
+  (n + 1) * (n + 2) list head-insertions.
+-/
+
 namespace Cslib
 
 namespace Algorithms
