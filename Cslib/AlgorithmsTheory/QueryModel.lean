@@ -51,7 +51,7 @@ namespace Algorithms
 A model type for a query type `QType` and cost type `Cost`. It consists of
 two fields, which respectively define the evaluation and cost of a query.
 -/
-structure Model (QType : Type u → Type u) (Cost : Type) [AddCommMonoid Cost] where
+structure Model (QType : Type u → Type u) (Cost : Type) where
   /-- Evaluates a query `q : Q ι` to return a result of type `ι`. -/
   evalQuery : QType ι → ι
   /-- Counts the operational cost of a query `q : Q ι` to return a result of type `Cost`.
@@ -59,11 +59,12 @@ structure Model (QType : Type u → Type u) (Cost : Type) [AddCommMonoid Cost] w
   including but not limited to time complexity. -/
   cost : QType ι → Cost
 
+
 open Cslib.Algorithms.Lean in
 /-- lift `Model.cost` to `TimeM Cost ι` -/
-abbrev Model.timeQuery [AddCommMonoid Cost]
-    (M : Model Q Cost) (x : Q ι) : TimeM Cost ι := do
-  ✓[M.cost x] return M.evalQuery x
+abbrev Model.timeQuery
+    (M : Model Q Cost) (x : Q ι) : TimeM Cost ι :=
+  TimeM.mk (M.evalQuery x) (M.cost x)
 
 /--
 A program is defined as a Free Monad over a Query type `Q` which operates on a base type `α`
@@ -74,43 +75,45 @@ abbrev Prog Q α := FreeM Q α
 /--
 The evaluation function of a program `P : Prog Q α` given a model `M : Model Q α` of `Q`
 -/
-def Prog.eval [AddCommMonoid Cost]
+def Prog.eval
     (P : Prog Q α) (M : Model Q Cost) : α :=
   Id.run <| P.liftM fun x => pure (M.evalQuery x)
 
 @[simp, grind =]
-theorem Prog.eval_pure [AddCommMonoid Cost] (a : α) (M : Model Q Cost) :
+theorem Prog.eval_pure (a : α) (M : Model Q Cost) :
     Prog.eval (FreeM.pure a) M = a :=
   rfl
 
 @[simp, grind =]
 theorem Prog.eval_bind
-    [AddCommMonoid Cost] (x : Prog Q α) (f : α → Prog Q β) (M : Model Q Cost) :
+    (x : Prog Q α) (f : α → Prog Q β) (M : Model Q Cost) :
     Prog.eval (FreeM.bind x f) M = Prog.eval (f (x.eval M)) M := by
   simp [Prog.eval]
 
 @[simp, grind =]
 theorem Prog.eval_liftBind
-    [AddCommMonoid Cost] (x : Q α) (f : α → Prog Q β) (M : Model Q Cost) :
+    (x : Q α) (f : α → Prog Q β) (M : Model Q Cost) :
     Prog.eval (FreeM.liftBind x f) M = Prog.eval (f <| M.evalQuery x) M := by
   simp [Prog.eval]
 
 /--
 The cost function of a program `P : Prog Q α` given a model `M : Model Q α` of `Q`.
 The most common use case of this function is to compute time-complexity, hence the name.
+
+In practice this is only well-behaved in the presence of `AddCommMonoid Cost`.
 -/
-def Prog.time [AddCommMonoid Cost]
+def Prog.time [AddZero Cost]
     (P : Prog Q α) (M : Model Q Cost) : Cost :=
   (P.liftM M.timeQuery).time
 
 @[simp, grind =]
-lemma Prog.time_pure [AddCommMonoid Cost] (a : α) (M : Model Q Cost) :
+lemma Prog.time_pure [AddZero Cost] (a : α) (M : Model Q Cost) :
     Prog.time (FreeM.pure a) M = 0 := by
   simp [time]
 
 @[simp, grind =]
-theorem Prog.time_liftBind
-    [AddCommMonoid Cost] (x : Q α) (f : α → Prog Q β) (M : Model Q Cost) :
+theorem Prog.time_liftBind [AddZero Cost]
+    (x : Q α) (f : α → Prog Q β) (M : Model Q Cost) :
     Prog.time (FreeM.liftBind x f) M = M.cost x + Prog.time (f <| M.evalQuery x) M := by
   simp [Prog.time]
 
@@ -125,8 +128,8 @@ lemma Prog.time_bind [AddCommMonoid Cost] (M : Model Q Cost)
     simp
   | liftBind op cont' ih =>
     specialize ih (M.evalQuery op)
-    simp_all only [bind_pure_comp, FreeM.liftM_bind, Lean.TimeM.time_bind,
-      FreeM.liftBind_bind, FreeM.liftM_liftBind, bind_map_left, LawfulMonad.pure_bind]
+    simp_all only [FreeM.liftM_bind, Lean.TimeM.time_bind,
+      FreeM.liftBind_bind, FreeM.liftM_liftBind, LawfulMonad.pure_bind]
     rw [add_assoc]
 
 section Reduction
