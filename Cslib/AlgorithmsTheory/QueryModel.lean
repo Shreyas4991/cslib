@@ -26,7 +26,6 @@ parametric type of query operations.
       under the hood
 - `eval`, `time` : concrete execution semantics of a `Prog Q α` for a given model of `Q`
 
-
 ## How to set up an algorithm
 
 This model is a lightweight framework for specifying and verifying both the correctness
@@ -61,7 +60,6 @@ structure Model (QType : Type u → Type u) (Cost : Type) [AddCommMonoid Cost] w
   including but not limited to time complexity -/
   cost : QType ι → Cost
 
-
 open Cslib.Algorithms.Lean in
 /-- lift `Model.cost` to `TimeM Cost ι` -/
 abbrev Model.timeQuery [AddCommMonoid Cost]
@@ -86,13 +84,11 @@ theorem Prog.eval_pure [AddCommMonoid Cost] (a : α) (M : Model Q Cost) :
     Prog.eval (FreeM.pure a) M = a :=
   rfl
 
-
 @[simp, grind =]
 theorem Prog.eval_bind
     [AddCommMonoid Cost] (x : Prog Q α) (f : α → Prog Q β) (M : Model Q Cost) :
     Prog.eval (FreeM.bind x f) M = Prog.eval (f (x.eval M)) M := by
   simp [Prog.eval]
-
 
 @[simp, grind =]
 theorem Prog.eval_liftBind
@@ -150,7 +146,6 @@ structure Reduction (Q₁ Q₂ : Type u → Type u) where
 -/
 abbrev Prog.reduceProg (P : Prog Q₁ α) (red : Reduction Q₁ Q₂) : Prog Q₂ α :=
   P.liftM red.reduce
-
 
 end Reduction
 

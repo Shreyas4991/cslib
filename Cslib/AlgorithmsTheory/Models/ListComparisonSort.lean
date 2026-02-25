@@ -40,9 +40,7 @@ structure SortOpsCost where
   /-- `inserts` counts the number of calls to `insertHead` -/
   inserts : ℕ
 
-/--
-Equivalence between SortOpsCost and a product type.
--/
+/-- Equivalence between SortOpsCost and a product type. -/
 def SortOpsCost.equivProd : SortOpsCost ≃ (ℕ × ℕ) where
   toFun sortOps := (sortOps.compares, sortOps.inserts)
   invFun pair := ⟨pair.1, pair.2⟩
@@ -81,6 +79,9 @@ end SortOpsCost
 
 /--
 A model of `SortOps` that uses `SortOpsCost` as the cost type for operations.
+
+While this accepts any decidable relation `le`, most sorting algorithms are only well-behaved in the
+presence of `[Std.Total le] [IsTrans _ le]`.
 -/
 @[simps, grind]
 def sortModel {α : Type} (le : α → α → Prop) [DecidableRel le] : Model (SortOps α) SortOpsCost where
@@ -98,6 +99,9 @@ section NatModel
 /--
 A model of `SortOps` that uses `ℕ` as the type for the cost of operations. In this model,
 both comparisons and insertions are counted in a single `ℕ` parameter.
+
+While this accepts any decidable relation `le`, most sorting algorithms are only well-behaved in the
+presence of `[Std.Total le] [IsTrans _ le]`.
 -/
 @[simps]
 def sortModelNat {α : Type} (le : α → α → Prop) [DecidableRel le] : Model (SortOps α) ℕ where

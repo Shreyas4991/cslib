@@ -20,9 +20,7 @@ namespace Algorithms
 open Prog
 
 open ListSearch in
-/--
-Linear Search in Lists on top of the `ListSearch` query model.
--/
+/-- Linear Search in Lists on top of the `ListSearch` query model. -/
 def listLinearSearch (l : List α) (x : α) : Prog (ListSearch α) Bool := do
   match l with
   | [] => return false

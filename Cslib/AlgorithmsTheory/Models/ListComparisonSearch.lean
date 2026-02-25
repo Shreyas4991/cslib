@@ -27,9 +27,7 @@ inductive ListSearch (α : Type) : Type → Type  where
   | compare (a : List α) (val : α) : ListSearch α Bool
 
 
-/--
-A model of the `ListSearch` query type that assigns costs to the queries in `ℕ`
--/
+/-- A model of the `ListSearch` query type that assigns the cost as the number of queries. -/
 @[simps]
 def ListSearch.natCost [BEq α] : Model (ListSearch α) ℕ where
   evalQuery
