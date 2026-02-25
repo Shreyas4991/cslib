@@ -52,30 +52,28 @@ inductive VecSortOps.{u} (α : Type u) : Type u → Type _ where
   | read (a : Vector α n) (i : Fin n) : VecSortOps α α
   | push (a : Vector α n) (elem : α) : VecSortOps α (Vector α (n + 1))
 
+/-- The typical means of evaluating a `VecSortOps`. -/
+def VecSortOps.eval [BEq α] : VecSortOps α β → β
+  | .write v i x => v.set i x
+  | .cmp l i j => .up <| l[i] == l[j]
+  | .read l i => l[i]
+  | .swap l i j => l.swap i j
+  | .push a elem => a.push elem
+
 def VecSortOps.worstCase [DecidableEq α] : Model (VecSortOps α) ℕ where
-  evalQuery
-    | .write v i x => v.set i x
-    | .cmp l i j => .up <| l[i] == l[j]
-    | .read l i => l[i]
-    | .swap l i j => l.swap i j
-    | .push a elem => a.push elem
+  evalQuery := VecSortOps.eval
   cost
-    | .write l i x => 1
-    | .read l i =>  1
-    | .cmp l i j => 1
-    | .swap l i j => 1
-    | .push a elem => 2 -- amortized over array insertion and resizing by doubling
+    | .write _ _ _ => 1
+    | .read _ _ =>  1
+    | .cmp _ _ _ => 1
+    | .swap _ _ _ => 1
+    | .push _ _ => 2 -- amortized over array insertion and resizing by doubling
 
 def VecSortOps.cmpSwap [DecidableEq α] : Model (VecSortOps α) ℕ where
-  evalQuery
-    | .write v i x => v.set i x
-    | .cmp l i j => .up <| l[i] == l[j]
-    | .read l i => l[i]
-    | .swap l i j => l.swap i j
-    | .push a elem => a.push elem
+  evalQuery := VecSortOps.eval
   cost
-    | .cmp l i j => 1
-    | .swap l i j => 1
+    | .cmp _ _ _ => 1
+    | .swap _ _ _ => 1
     | _ => 0
 
 open VecSortOps in
