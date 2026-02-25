@@ -84,11 +84,11 @@ instance : PartialOrder SortOpsCost :=
 
 @[simps]
 instance : Add SortOpsCost where
-  add (soc₁ soc₂ : SortOpsCost) :=  ⟨soc₁.compares + soc₂.compares, soc₁.inserts + soc₂.inserts⟩
+  add soc₁ soc₂ := ⟨soc₁.compares + soc₂.compares, soc₁.inserts + soc₂.inserts⟩
 
 @[simps]
 instance : SMul ℕ SortOpsCost where
-  smul (n : ℕ) (soc : SortOpsCost) : SortOpsCost := ⟨n • soc.compares, n • soc.inserts⟩
+  smul n soc := ⟨n • soc.compares, n • soc.inserts⟩
 
 instance : AddCommMonoid SortOpsCost :=
   fast_instance%
@@ -117,11 +117,11 @@ section NatModel
 
 /--
 A model for comparison sorting on lists with only the comparison operation. This
-is used in mergeSort
+is used in mergeSort.
 -/
 inductive SortOpsCmp.{u} (α : Type u) : Type → Type _ where
   /-- `cmpLE x y` is intended to return `true` if `x ≤ y` and `false` otherwise.
-  The specific order relation depends on the model provided for this typ. e-/
+  The specific order relation depends on the model provided for this type. -/
   | cmpLE (x : α) (y : α) : SortOpsCmp α Bool
 
 /--
