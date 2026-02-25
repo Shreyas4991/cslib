@@ -21,11 +21,11 @@ which defines a `ℕ` based cost structure.
 ## Definitions
 
 - `SortOps`: A query type for comparison based sorting in lists which includes queries for
-  comparison and head-insertion into Lists. This is a suitable query for ordered insertion
-  and insertion sort.
+   comparison and head-insertion into Lists. This is a suitable query for ordered insertion
+   and insertion sort.
 - `SortOpsCmp`:  A query type for comparison based sorting that only includes a comparison query.
-  This is more suitable for comparison based sorts for which it is only desirable to count
-  comparisons
+   This is more suitable for comparison based sorts for which it is only desirable to count
+   comparisons
 
 -/
 namespace Cslib

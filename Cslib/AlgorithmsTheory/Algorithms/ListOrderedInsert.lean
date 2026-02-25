@@ -29,7 +29,7 @@ in upstream libraries for the pure lean code versions of these declarations.
 
 - `insertOrd_eval`: `insertOrd` evaluates identically to `List.orderedInsert`.
 - `insertOrd_complexity_upper_bound` : Shows that `insertOrd` takes at most `n` comparisons,
-    and `n + 1` list head-insertion operations.
+   and `n + 1` list head-insertion operations.
 - `insertOrd_sorted` : Applying `insertOrd` to a sorted list yields a sorted list.
 -/
 
