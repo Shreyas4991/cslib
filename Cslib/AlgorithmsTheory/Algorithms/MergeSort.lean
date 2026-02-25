@@ -29,7 +29,7 @@ the `SortOps` model.
 - `mergeSort_eval`: `mergeSort` evaluates identically to the priva.
 - `mergeSort_sorted` :  `mergeSort` outputs a sorted list.
 - `mergeSort_perm` : The output of `mergeSort` is a permutation of the input list
-- `mergeSort_complexity` : `mergeSort` takes at most n * log n comparisons.
+- `mergeSort_complexity` : `mergeSort` takes at most n * ⌈log n⌉ comparisons.
 -/
 namespace Cslib.Algorithms
 

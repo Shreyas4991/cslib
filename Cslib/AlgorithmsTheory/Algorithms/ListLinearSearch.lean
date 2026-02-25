@@ -12,7 +12,25 @@ public import Mathlib
 
 @[expose] public section
 
+/-!
+# Linear search in a list
 
+In this file we state and prove the correctness and complexity of linear search in lists under
+the `ListSearch` model.
+--
+
+## Main Definitions
+
+- `listLinearSearch` : Linear search algorithm in the `ListSearch` query model
+
+## Main results
+
+- `listLinearSearch_eval`: `insertOrd` evaluates identically to `List.contains`.
+- `listLinearSearchM_time_complexity_upper_bound` : `linearSearch` takes at most `n`
+  comparison operations
+- `listLinearSearchM_time_complexity_lower_bound` : There exist lists on which `linearSearch` needs
+  `n` comparisons
+-/
 namespace Cslib
 
 namespace Algorithms
@@ -45,7 +63,7 @@ lemma listLinearSearchM_correct_false [BEq α] [LawfulBEq α] (l : List α)
   simp [x_mem_l]
 
 lemma listLinearSearchM_time_complexity_upper_bound [BEq α] (l : List α) (x : α) :
-    (listLinearSearch l x).time ListSearch.natCost ≤ 1 + l.length := by
+    (listLinearSearch l x).time ListSearch.natCost ≤ l.length := by
   fun_induction l.elem x with
   | case1 => simp [listLinearSearch]
   | case2 => simp_all [listLinearSearch]

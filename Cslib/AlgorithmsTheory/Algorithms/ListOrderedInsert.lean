@@ -28,7 +28,6 @@ in upstream libraries for the pure lean code versions of these declarations.
 ## Main results
 
 - `insertOrd_eval`: `insertOrd` evaluates identically to `List.orderedInsert`.
-- `mergeSort_time` :  The number of comparisons of `mergeSort` is at most `n*⌈log₂ n⌉`.
 - `insertOrd_complexity_upper_bound` : Shows that `insertOrd` takes at most `n` comparisons,
     and `n + 1` list head-insertion operations.
 - `insertOrd_sorted` : Applying `insertOrd` to a sorted list yields a sorted list.
