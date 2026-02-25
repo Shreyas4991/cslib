@@ -128,9 +128,7 @@ lemma Prog.time_bind [AddCommMonoid Cost] (M : Model Q Cost)
     simp
   | liftBind op cont' ih =>
     specialize ih (M.evalQuery op)
-    simp_all only [FreeM.liftM_bind, Lean.TimeM.time_bind,
-      FreeM.liftBind_bind, FreeM.liftM_liftBind, LawfulMonad.pure_bind]
-    rw [add_assoc]
+    simp_all [add_assoc]
 
 section Reduction
 
