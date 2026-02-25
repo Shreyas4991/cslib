@@ -28,40 +28,47 @@ inductive ListOps (α : Type u) : Type u → Type _ where
   | find (l : List α) (elem : α) : ListOps α (ULift ℕ)
   | write (l : List α) (i : Fin l.length) (x : α) : ListOps α (List α)
 
+/-- The typical means of evaluating a `ListOps`. -/
+@[simp]
+def ListOps.eval [BEq α] : ListOps α ι → ι
+  | .write l i x => l.set i x
+  | .find l elem => l.findIdx (· == elem)
+  | .get l i => l[i]
+
+@[simps]
 def ListOps.linSearchWorstCase [DecidableEq α] : Model (ListOps α) ℕ where
-  evalQuery
-    | .write l i x => l.set i x
-    | .find l elem => l.findIdx (· = elem)
-    | .get l i => l[i]
+  evalQuery := ListOps.eval
   cost
-    | .write l i x => l.length
-    | .find l elem =>  l.length
-    | .get l i => l.length
+    | .write l _ _ => l.length
+    | .find l _ =>  l.length
+    | .get l _ => l.length
 
 def ListOps.binSearchWorstCase [BEq α] : Model (ListOps α) ℕ where
-  evalQuery
-    | .write l i x => l.set i x
-    | .get l i => l[i]
-    | .find l elem => l.findIdx (· == elem)
+  evalQuery := ListOps.eval
   cost
     | .find l _ => 1 + Nat.log 2 (l.length)
-    | .write l i x => l.length
-    | .get l x => l.length
+    | .write l _ _ => l.length
+    | .get l _ => l.length
 
 inductive ArrayOps (α : Type u) : Type u → Type _ where
   | get (l : Array α) (i : Fin l.size) : ArrayOps α α
   | find (l : Array α) (x : α) : ArrayOps α (ULift ℕ)
   | write (l : Array α) (i : Fin l.size) (x : α) : ArrayOps α (Array α)
 
+/-- The typical means of evaluating a `ListOps`. -/
+@[simp]
+def ArrayOps.eval [BEq α] : ArrayOps α ι → ι
+  | .write l i x => l.set i x
+  | .find l elem => l.findIdx (· == elem)
+  | .get l i => l[i]
+
+@[simps]
 def ArrayOps.binSearchWorstCase [BEq α] : Model (ArrayOps α) ℕ where
-  evalQuery
-    | .write l i x => l.set i x
-    | .get l i => l[i]
-    | .find l elem => l.findIdx (· == elem)
+  evalQuery := ArrayOps.eval
   cost
     | .find l _ => 1 + Nat.log 2 (l.size)
-    | .write l i x => 1
-    | .get l x => 1
+    | .write _ _ _ => 1
+    | .get _ _ => 1
 
 end Examples
 
