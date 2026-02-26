@@ -103,11 +103,9 @@ private proof_wanted mergeSortNaive_eq_mergeSort
 
 private lemma mergeSortNaive_Perm (xs : List α) (le : α → α → Prop) [DecidableRel le] :
   (mergeSortNaive xs le).Perm xs := by
-  fun_induction mergeSortNaive
-  · simp
-  · expose_names
-    rw [←(List.take_append_drop (x.length / 2) x)]
-    grw [List.merge_perm_append, ← ih1, ← ih2]
+  fun_induction mergeSortNaive with
+  | case1 => simp
+  | case2 x _ _ _ ih2 ih1 => grw [←List.take_append_drop _ x, List.merge_perm_append, ← ih1, ← ih2]
 
 @[simp]
 private lemma mergeSort_eval (xs : List α) (le : α → α → Prop) [DecidableRel le] :
