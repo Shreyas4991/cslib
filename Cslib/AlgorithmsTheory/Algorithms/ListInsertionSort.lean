@@ -82,7 +82,6 @@ theorem insertionSort_complexity (l : List α) (le : α → α → Prop) [Decida
   | nil =>
     simp [insertionSort]
   | cons head tail ih =>
-    have h := insertOrd_complexity_upper_bound (tail.insertionSort le) head le
     grind [insertOrd_complexity_upper_bound, List.length_insertionSort, SortOpsCost.le_def,
       insertionSort_time_compares, insertionSort_time_inserts]
 
