@@ -140,8 +140,7 @@ def sortModelNat {α : Type*}
     (le : α → α → Prop) [DecidableRel le] : Model (SortOpsCmp α) ℕ where
   evalQuery
     | .cmpLE x y => decide (le x y)
-  cost
-    | .cmpLE _ _ => 1
+  cost _ := 1
 
 end NatModel
 

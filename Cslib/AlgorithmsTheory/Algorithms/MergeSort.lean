@@ -123,7 +123,6 @@ private lemma mergeSort_eval (xs : List α) (le : α → α → Prop) [Decidable
     simp [h, mergeSortNaive, Prog.eval]
   | case2 xs h n left right ihl ihr =>
     rw [mergeSortNaive, if_neg h]
-    have im := merge_eval left right
     simp [ihl, ihr, merge_eval]
     rfl
 
@@ -177,29 +176,11 @@ open Cslib.Algorithms.Lean.TimeM
 -- TODO: reuse the work in `mergeSort_time_le`?
 theorem mergeSort_complexity (xs : List α) (le : α → α → Prop) [DecidableRel le] :
     (mergeSort xs).time (sortModelNat le) ≤ T (xs.length) := by
-  fun_induction mergeSort
-  · simp [T]
-  · expose_names
-    simp only [FreeM.bind_eq_bind, Prog.time_bind, mergeSort_eval]
-    grw [merge_timeComplexity, ih1, ih2, mergeSortNaive_length, mergeSortNaive_length]
-    set n := x.length
-    have hleft_len : left.length ≤ n / 2 := by
-      grind
-    have hright_len : right.length ≤ (n + 1) / 2 := by
-      have hright_eq : right.length = n - n / 2 := by
-        simp [right, n, half, List.length_drop]
-      rw [hright_eq]
-      grind
-    have htleft_len : T left.length ≤ T (n / 2) := T_monotone hleft_len
-    have htright_len : T right.length ≤ T ((n + 1) / 2) := T_monotone hright_len
-    grw [htleft_len, htright_len, hleft_len, hright_len]
-    have hs := some_algebra (n - 2)
-    have hsub1 : (n - 2) / 2 + 1 = n / 2 := by grind
-    have hsub2 : 1 + (1 + (n - 2)) / 2 = (n + 1) / 2 := by grind
-    have hsub3 : (n - 2) + 2 = n := by grind
-    have hsplit : n / 2 + (n + 1) / 2 = n := by grind
-    simpa [T, hsub1, hsub2, hsub3, hsplit, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
-      using hs
+  fun_induction mergeSort with
+  | case1 => simp [T]
+  | case2 x =>
+  simp only [FreeM.bind_eq_bind, Prog.time_bind]
+  grind [some_algebra (x.length - 2), mergeSort_eval, merge_timeComplexity, mergeSortNaive_length]
 
 end TimeComplexity
 

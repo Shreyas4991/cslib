@@ -68,7 +68,7 @@ lemma insertOrd_eval (x : α) (l : List α) (le : α → α → Prop) [Decidable
     · simp [insertOrd, h_head]
     · simp [insertOrd, h_head, ih]
 
--- to upstream
+-- TODO : to upstream
 @[simp]
 lemma _root_.List.length_orderedInsert (x : α) (l : List α) [DecidableRel r] :
     (l.orderedInsert r x).length = l.length + 1 := by
