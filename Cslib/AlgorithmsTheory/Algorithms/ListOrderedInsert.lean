@@ -89,7 +89,7 @@ theorem insertOrd_complexity_upper_bound
       grind
 
 lemma insertOrd_sorted
-    (l : List α) (x : α) (le : α → α → Prop) [DecidableRel le] [Std.Total le] [IsTrans _ le] :
+    (l : List α) (x : α) (le : α → α → Prop) [DecidableRel le] [Std.Total le] [IsTrans α le] :
     l.Pairwise le → ((insertOrd x l).eval (sortModel le)).Pairwise le := by
   rw [insertOrd_eval]
   exact List.Pairwise.orderedInsert _ _
