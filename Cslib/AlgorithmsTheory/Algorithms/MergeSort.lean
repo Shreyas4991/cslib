@@ -66,13 +66,7 @@ lemma merge_timeComplexity (x y : List α) (le : α → α → Prop) [DecidableR
 @[simp]
 lemma merge_eval (x y : List α) (le : α → α → Prop) [DecidableRel le] :
     (merge x y).eval (sortModelNat le) = List.merge x y (le · ·) := by
-  fun_induction List.merge with
-  | case1 => simp
-  | case2 => simp
-  | case3 x xs y ys ihx ihy => simp_all [merge]
-  | case4 x xs y ys hxy ihx =>
-    rw [decide_eq_true_iff] at hxy
-    simp_all [merge, -not_le]
+  fun_induction List.merge with simp_all [merge]
 
 lemma merge_length (x y : List α) (le : α → α → Prop) [DecidableRel le] :
     ((merge x y).eval (sortModelNat le)).length = x.length + y.length := by
