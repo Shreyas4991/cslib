@@ -83,18 +83,9 @@ theorem insertionSort_complexity (l : List α) (le : α → α → Prop) [Decida
     simp [insertionSort]
   | cons head tail ih =>
     have h := insertOrd_complexity_upper_bound (tail.insertionSort le) head le
-    simp_all only [List.length_cons, List.length_insertionSort]
-    obtain ⟨ih₁,ih₂⟩ := ih
-    obtain ⟨h₁,h₂⟩ := h
-    refine ⟨?_, ?_⟩
-    · clear h₂
-      rw [insertionSort_time_compares]
-      nlinarith [ih₁, h₁]
-    · clear h₁
-      rw [insertionSort_time_inserts]
-      nlinarith [ih₂, h₂]
+    grind [insertOrd_complexity_upper_bound, List.length_insertionSort, SortOpsCost.le_def,
+      insertionSort_time_compares, insertionSort_time_inserts]
 
 end Algorithms
 
 end Cslib
-#min_imports
