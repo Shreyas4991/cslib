@@ -45,8 +45,7 @@ inductive ListSearch (α : Type*) : Type → Type _ where
 def ListSearch.natCost [BEq α] : Model (ListSearch α) ℕ where
   evalQuery
     | .compare l x => some x == l.head?
-  cost
-    | .compare _ _ => 1
+  cost _ := 1
 
 end Algorithms
 
