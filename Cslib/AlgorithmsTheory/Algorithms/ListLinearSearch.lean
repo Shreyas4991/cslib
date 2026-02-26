@@ -72,7 +72,7 @@ lemma listLinearSearchM_time_complexity_upper_bound [BEq α] (l : List α) (x : 
   | case2 => simp_all [listLinearSearch]
   | case3 =>
     simp_all [listLinearSearch]
-    grind
+    lia
 
 lemma listLinearSearchM_time_complexity_lower_bound [DecidableEq α] [Nontrivial α] :
     ∀ n, ∃ l : List α, ∃ x : α, l.length = n
