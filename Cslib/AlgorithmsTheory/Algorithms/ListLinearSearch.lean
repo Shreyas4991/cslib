@@ -8,7 +8,10 @@ module
 
 public import Cslib.AlgorithmsTheory.QueryModel
 public import Cslib.AlgorithmsTheory.Models.ListComparisonSearch
-public import Mathlib
+public import Mathlib.Algebra.Order.Group.Nat
+public import Mathlib.Data.Int.ConditionallyCompleteOrder
+public import Mathlib.Order.ConditionallyCompleteLattice.Basic
+public import Mathlib.Tactic.Set
 
 @[expose] public section
 
@@ -71,12 +74,26 @@ lemma listLinearSearchM_time_complexity_upper_bound [BEq α] (l : List α) (x : 
     simp_all [listLinearSearch]
     grind
 
--- This statement is wrong
-lemma listLinearSearchM_time_complexity_lower_bound [DecidableEq α] [Nonempty α] :
-    ∃ l : List α, ∃ x : α, (listLinearSearch l x).time ListSearch.natCost = l.length := by
-  inhabit α
-  refine ⟨[], default, ?_⟩
-  simp_all [ListSearch.natCost, listLinearSearch]
+lemma listLinearSearchM_time_complexity_lower_bound [DecidableEq α] [Nontrivial α] :
+    ∀ n, ∃ l : List α, ∃ x : α, l.length = n
+      ∧ (listLinearSearch l x).time ListSearch.natCost = l.length := by
+  intro n
+  obtain ⟨x, y, hneq⟩ := exists_pair_ne α
+  use (List.replicate n y), x
+  refine ⟨?_, ?_⟩
+  · simp
+  · induction n with
+    | zero => simp [listLinearSearch, List.replicate]
+    | succ m ih =>
+      simp only [List.replicate, listLinearSearch, FreeM.lift_def, FreeM.pure_eq_pure,
+        FreeM.bind_eq_bind, FreeM.liftBind_bind, FreeM.pure_bind, time_liftBind,
+        ListSearch.natCost_cost, ListSearch.natCost_evalQuery, List.head?_cons,
+        Option.some_beq_some, beq_iff_eq, List.length_cons, List.length_replicate]
+      split_ifs with hxy_eq
+      · exfalso
+        tauto
+      · rw [ih, List.length_replicate, add_comm]
+
 
 end Algorithms
 

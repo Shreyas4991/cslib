@@ -7,7 +7,11 @@ Authors: Shreyas Srinivas, Eric WIeser
 module
 
 public import Cslib.AlgorithmsTheory.QueryModel
-
+public import Mathlib.Algebra.Group.Nat.Defs
+public import Mathlib.Algebra.Group.Prod
+public import Mathlib.Data.Nat.Basic
+public import Mathlib.Order.Basic
+public import Mathlib.Tactic.FastInstance
 @[expose] public section
 
 /-!

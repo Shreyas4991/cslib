@@ -8,7 +8,10 @@ module
 
 public import Cslib.AlgorithmsTheory.QueryModel
 public import Cslib.AlgorithmsTheory.Models.ListComparisonSort
-public import Mathlib
+public import Mathlib.Algebra.Order.Group.Nat
+public import Mathlib.Data.Int.ConditionallyCompleteOrder
+public import Mathlib.Data.List.Sort
+public import Mathlib.Order.ConditionallyCompleteLattice.Basic
 
 @[expose] public section
 

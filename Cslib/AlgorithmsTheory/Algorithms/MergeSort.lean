@@ -6,7 +6,6 @@ Authors: Shreyas Srinivas, Eric Wieser
 
 module
 
-public import Cslib.AlgorithmsTheory.QueryModel
 public import Cslib.AlgorithmsTheory.Models.ListComparisonSort
 public import Cslib.AlgorithmsTheory.Lean.MergeSort.MergeSort
 import all Cslib.AlgorithmsTheory.Lean.MergeSort.MergeSort

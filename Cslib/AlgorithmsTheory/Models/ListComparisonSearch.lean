@@ -7,7 +7,6 @@ Authors: Shreyas Srinivas
 module
 
 public import Cslib.AlgorithmsTheory.QueryModel
-public import Mathlib
 
 @[expose] public section
 

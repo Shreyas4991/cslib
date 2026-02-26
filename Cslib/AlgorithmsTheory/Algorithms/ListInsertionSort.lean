@@ -5,9 +5,7 @@ Authors: Shreyas Srinivas, Eric Wieser
 -/
 module
 
-public import Cslib.AlgorithmsTheory.QueryModel
 public import Cslib.AlgorithmsTheory.Algorithms.ListOrderedInsert
-public import Mathlib
 
 @[expose] public section
 
@@ -98,3 +96,4 @@ theorem insertionSort_complexity (l : List α) (le : α → α → Prop) [Decida
 end Algorithms
 
 end Cslib
+#min_imports
