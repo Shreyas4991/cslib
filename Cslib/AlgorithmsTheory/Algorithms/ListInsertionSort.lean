@@ -6,6 +6,7 @@ Authors: Shreyas Srinivas, Eric Wieser
 module
 
 public import Cslib.AlgorithmsTheory.Algorithms.ListOrderedInsert
+public import Mathlib.Tactic.Linarith
 
 @[expose] public section
 
