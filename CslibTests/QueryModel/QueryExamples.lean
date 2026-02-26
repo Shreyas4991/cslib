@@ -7,7 +7,9 @@ Authors: Shreyas Srinivas
 module
 
 public import Cslib.AlgorithmsTheory.QueryModel
-
+public import Cslib.AlgorithmsTheory.QueryModel
+public import Mathlib.Algebra.Ring.ULift
+public import Mathlib.Data.Nat.Log
 
 @[expose] public section
 
