@@ -63,6 +63,7 @@ def ListOpsWithFind.linSearchWorstCase [DecidableEq α] : Model (ListOpsWithFind
 A model of `ListOpsWithFind` that assumes that `find` is implemented by a
 binary-search like `Θ(log n)` algorithm.
 -/
+@[simps]
 def ListOps.binSearchWorstCase [BEq α] : Model (ListOpsWithFind α) ℕ where
   evalQuery := ListOpsWithFind.eval
   cost
