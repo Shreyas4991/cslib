@@ -71,29 +71,18 @@ lemma listLinearSearchM_time_complexity_upper_bound [BEq α] (l : List α) (x : 
   | case1 => simp [listLinearSearch]
   | case2 => simp_all [listLinearSearch]
   | case3 =>
-    simp_all [listLinearSearch]
+    simp [listLinearSearch]
     lia
 
-lemma listLinearSearchM_time_complexity_lower_bound [DecidableEq α] [Nontrivial α] :
-    ∀ n, ∃ l : List α, ∃ x : α, l.length = n
+lemma listLinearSearchM_time_complexity_lower_bound [DecidableEq α] [Nontrivial α] (n : ℕ) :
+    ∃ (l : List α) (x : α), l.length = n
       ∧ (listLinearSearch l x).time ListSearch.natCost = l.length := by
-  intro n
   obtain ⟨x, y, hneq⟩ := exists_pair_ne α
-  use (List.replicate n y), x
-  refine ⟨?_, ?_⟩
+  use List.replicate n y, x
+  split_ands
   · simp
-  · induction n with
-    | zero => simp [listLinearSearch, List.replicate]
-    | succ m ih =>
-      simp only [List.replicate, listLinearSearch, FreeM.lift_def, FreeM.pure_eq_pure,
-        FreeM.bind_eq_bind, FreeM.liftBind_bind, FreeM.pure_bind, time_liftBind,
-        ListSearch.natCost_cost, ListSearch.natCost_evalQuery, List.head?_cons,
-        Option.some_beq_some, beq_iff_eq, List.length_cons, List.length_replicate]
-      split_ifs with hxy_eq
-      · exfalso
-        tauto
-      · rw [ih, List.length_replicate, add_comm]
-
+  · induction n <;> simp [listLinearSearch, List.replicate]
+    grind [ListSearch.natCost_cost, ListSearch.natCost_evalQuery]
 
 end Algorithms
 
