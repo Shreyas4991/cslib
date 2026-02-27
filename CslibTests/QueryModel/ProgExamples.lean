@@ -11,6 +11,16 @@ public import Mathlib.Algebra.Lie.OfAssociative
 
 @[expose] public section
 
+/-!
+# Additional examples of Progs with Query Types
+
+This file contains two query types and associated `Prog`s
+- `Arith` with `ex1`
+- `VectorSortOps` with `simpleExample`
+- `VecSearch` with `linearSearch`
+They are meant to be additional examples to guide authors to write
+query types and programs on top of them
+-/
 namespace Cslib
 
 namespace Algorithms
