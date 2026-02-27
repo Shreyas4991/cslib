@@ -67,7 +67,7 @@ def VecSortOps.worstCase [DecidableEq α] : Model (VecSortOps α) ℕ where
   evalQuery := VecSortOps.eval
   cost
     | .write _ _ _ => 1
-    | .read _ _ =>  1
+    | .read _ _ => 1
     | .cmp _ _ _ => 1
     | .swap _ _ _ => 1
     | .push _ _ => 2 -- amortized over array insertion and resizing by doubling
