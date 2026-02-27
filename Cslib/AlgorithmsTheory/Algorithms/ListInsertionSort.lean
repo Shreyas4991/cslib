@@ -14,13 +14,13 @@ public import Mathlib.Tactic.Linarith
 # Insertion sort in a list
 
 In this file we state and prove the correctness and complexity of insertion sort in lists under
-the `SortOps` model. This insertionSort evaluates identically to the upstream version of
+the `SortOpsInsertHead` model. This insertionSort evaluates identically to the upstream version of
 `List.insertionSort`
 --
 
 ## Main Definitions
 
-- `insertionSort` : Insertion sort algorithm in the `SortOps` query model
+- `insertionSort` : Insertion sort algorithm in the `SortOpsInsertHead` query model
 
 ## Main results
 
@@ -38,7 +38,7 @@ namespace Algorithms
 open Prog
 
 /-- The insertionSort algorithms on lists with the `SortOps` query. -/
-def insertionSort (l : List α) : Prog (SortOps α) (List α) :=
+def insertionSort (l : List α) : Prog (SortOpsInsertHead α) (List α) :=
   match l with
   | [] => return []
   | x :: xs => do

@@ -41,13 +41,13 @@ namespace Algorithms
 
 open Prog
 
-open SortOps
+open SortOpsInsertHead
 
 /--
 Performs ordered insertion of `x` into a list `l` in the `SortOps` query model.
 If `l` is sorted, then `x` is inserted into `l` such that the resultant list is also sorted.
 -/
-def insertOrd (x : α) (l : List α) : Prog (SortOps α) (List α) := do
+def insertOrd (x : α) (l : List α) : Prog (SortOpsInsertHead α) (List α) := do
   match l with
   | [] => insertHead x l
   | a :: as =>

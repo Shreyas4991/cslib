@@ -32,11 +32,11 @@ the `SortOps` model.
 -/
 namespace Cslib.Algorithms
 
-open SortOpsCmp
+open SortOps
 
 /-- Merge two sorted lists using comparisons in the query monad. -/
 @[simp]
-def merge (x y : List α) : Prog (SortOpsCmp α) (List α) := do
+def merge (x y : List α) : Prog (SortOps α) (List α) := do
   match x,y with
   | [], ys => return ys
   | xs, [] => return xs
@@ -77,7 +77,7 @@ lemma merge_length (x y : List α) (le : α → α → Prop) [DecidableRel le] :
 The `mergeSort` algorithm in the `SortOps` query model. It sorts the input list
 according to the mergeSort algorithm.
 -/
-def mergeSort (xs : List α) : Prog (SortOpsCmp α) (List α) :=  do
+def mergeSort (xs : List α) : Prog (SortOps α) (List α) :=  do
   if xs.length < 2 then return xs
   else
     let half  := xs.length / 2

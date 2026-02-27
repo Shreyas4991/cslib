@@ -41,14 +41,14 @@ open Prog
 /--
 A model for comparison sorting on lists.
 -/
-inductive SortOps (α : Type) : Type → Type  where
+inductive SortOpsInsertHead (α : Type) : Type → Type  where
   /-- `cmpLE x y` is intended to return `true` if `x ≤ y` and `false` otherwise.
   The specific order relation depends on the model provided for this typ. e-/
-  | cmpLE (x : α) (y : α) : SortOps α Bool
+  | cmpLE (x : α) (y : α) : SortOpsInsertHead α Bool
   /-- `insertHead l x` is intended to return `x :: l`. -/
-  | insertHead (x : α) (l : List α) : SortOps α (List α)
+  | insertHead (x : α) (l : List α) : SortOpsInsertHead α (List α)
 
-open SortOps
+open SortOpsInsertHead
 
 section SortOpsCostModel
 
@@ -107,7 +107,8 @@ While this accepts any decidable relation `le`, most sorting algorithms are only
 presence of `[Std.Total le] [IsTrans _ le]`.
 -/
 @[simps, grind]
-def sortModel {α : Type} (le : α → α → Prop) [DecidableRel le] : Model (SortOps α) SortOpsCost where
+def sortModel {α : Type} (le : α → α → Prop) [DecidableRel le] :
+    Model (SortOpsInsertHead α) SortOpsCost where
   evalQuery
     | .cmpLE x y => decide (le x y)
     | .insertHead x l => x :: l
@@ -123,10 +124,10 @@ section NatModel
 A model for comparison sorting on lists with only the comparison operation. This
 is used in mergeSort.
 -/
-inductive SortOpsCmp.{u} (α : Type u) : Type → Type _ where
+inductive SortOps.{u} (α : Type u) : Type → Type _ where
   /-- `cmpLE x y` is intended to return `true` if `x ≤ y` and `false` otherwise.
   The specific order relation depends on the model provided for this type. -/
-  | cmpLE (x : α) (y : α) : SortOpsCmp α Bool
+  | cmpLE (x : α) (y : α) : SortOps α Bool
 
 /--
 A model of `SortOps` that uses `ℕ` as the type for the cost of operations. In this model,
@@ -137,7 +138,7 @@ presence of `[Std.Total le] [IsTrans _ le]`.
 -/
 @[simps]
 def sortModelNat {α : Type*}
-    (le : α → α → Prop) [DecidableRel le] : Model (SortOpsCmp α) ℕ where
+    (le : α → α → Prop) [DecidableRel le] : Model (SortOps α) ℕ where
   evalQuery
     | .cmpLE x y => decide (le x y)
   cost _ := 1
