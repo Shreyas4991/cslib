@@ -8,9 +8,8 @@ module
 
 public import Cslib.AlgorithmsTheory.QueryModel
 public import Cslib.AlgorithmsTheory.Models.ListComparisonSearch
+public import Batteries.Data.List
 public import Mathlib.Algebra.Order.Group.Nat
-public import Mathlib.Data.Int.ConditionallyCompleteOrder
-public import Mathlib.Order.ConditionallyCompleteLattice.Basic
 public import Mathlib.Tactic.Set
 
 @[expose] public section
