@@ -6,7 +6,7 @@ Authors: Tanner Duve, Shreyas Srinivas, Eric Wieser
 
 module
 
-public import Cslib.Foundations.Control.Monad.Free.Fold
+public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.AlgorithmsTheory.Lean.TimeM
 
 @[expose] public section
