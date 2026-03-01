@@ -117,7 +117,7 @@ public theorem tick_costs [Monad n] [WPMonad n ps] : Costs (tick : TickT n Unit)
   simp_all [checkBound]
 
 /-- WP of `MonadLift.monadLift` through `TickT`: passes through the tick state unchanged. -/
-@[simp]
+@[simp, spec]
 theorem wp_monadLift [Monad m] [WPMonad m ps] (x : m α)
     (Q : PostCond α (.arg State ps)) :
     wp⟦(MonadLift.monadLift x : TickT m α)⟧ Q = fun s => wp⟦x⟧ (fun a => Q.1 a s, Q.2) :=
