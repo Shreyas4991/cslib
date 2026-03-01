@@ -8,6 +8,7 @@ module
 public import Cslib.Algorithms.Lean.Query.RunsIn
 public import Cslib.Algorithms.Lean.Query.InsertionSort.Defs
 import Std.Tactic.Do
+public import Mathlib.Data.List.Sort
 
 open Std.Do Cslib.Query TickT
 
@@ -103,6 +104,26 @@ public theorem insertionSort_runsIn :
           have := orderedInsert_runsIn x query hquery sorted
           rwa [List.Perm.length_eq hperm] at this
     · simp only [List.length]; have := Nat.mul_succ xs.length xs.length; grind
+
+/-- The monadic `orderedInsert` at `m := Id` agrees with `List.orderedInsert`. -/
+public theorem id_run_orderedInsert (r : α → α → Prop) [DecidableRel r] (x : α) (xs : List α) :
+    Id.run (orderedInsert (fun p => decide (r p.1 p.2)) x xs) = List.orderedInsert r x xs := by
+  induction xs with
+  | nil => simp [orderedInsert, Id.run, Pure.pure]
+  | cons y ys ih =>
+    simp only [Id.run] at ih
+    simp only [orderedInsert, Id.run, List.orderedInsert_cons, Pure.pure, Bind.bind, ih]
+    split <;> simp_all [decide_eq_true_eq]
+
+/-- The monadic `insertionSort` at `m := Id` agrees with `List.insertionSort`. -/
+public theorem id_run_insertionSort (r : α → α → Prop) [DecidableRel r] (xs : List α) :
+    Id.run (insertionSort (fun p => decide (r p.1 p.2)) xs) = List.insertionSort r xs := by
+  induction xs with
+  | nil => simp [insertionSort, Id.run, Pure.pure]
+  | cons x xs ih =>
+    simp only [Id.run] at ih
+    simp only [insertionSort, Id.run, List.insertionSort_cons, Bind.bind, ih]
+    exact id_run_orderedInsert r x (List.insertionSort r xs)
 
 end Cslib.Query
 
