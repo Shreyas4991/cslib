@@ -20,13 +20,12 @@ namespace Cslib.Query
 
 /-- The monadic `merge` at `m := Id` agrees with `List.merge`. -/
 public theorem id_run_merge (le : α → α → Bool) (xs ys : List α) :
-    Id.run (merge (fun p => le p.1 p.2) xs ys) = List.merge xs ys le := by
-  fun_induction merge (m := Id) (fun p => le p.1 p.2) xs ys with
-  | case1 => simp [Id.run, Pure.pure]
-  | case2 xs => simp [Id.run, Pure.pure, List.merge_right]
+    Id.run (merge (fun p => pure (le p.1 p.2)) xs ys) = List.merge xs ys le := by
+  fun_induction merge (m := Id) (fun p => pure (le p.1 p.2)) xs ys with
+  | case1 => simp [Id.run_pure]
+  | case2 xs => simp [Id.run_pure, List.merge_right]
   | case3 x xs y ys ih_t ih_f =>
-    simp only [Id.run] at ih_t ih_f ⊢
-    simp only [Bind.bind, Pure.pure]
+    simp only [Id.run_bind, Id.run_pure] at ih_t ih_f ⊢
     rw [List.cons_merge_cons]
     split <;> simp_all
 
@@ -122,41 +121,20 @@ public theorem mergeSort_runsIn :
       exact mergeSort_bound _ (by simp only [List.length_cons]; omega)
 
 -- Sorted results
--- TODO: Generalize these to an arbitrary monad with a "persistent" monadic comparator,
--- i.e., one whose return value is determined by its input, regardless of monadic effects.
 
 section Sorted
 
 variable (r : α → α → Prop) [DecidableRel r] [Std.Total r] [IsTrans α r]
 
-/-- At `m := Id`, `merge` preserves sortedness. -/
-public theorem merge_sorted_id
+/-- `merge` preserves sortedness and produces a permutation, for any monadic comparator
+    with a pure return reflecting `r`. This combined version is needed because the sortedness
+    proof requires knowing the result is a permutation of the input. -/
+private theorem merge_spec {ps : PostShape} [Monad m] [WPMonad m ps]
+    (cmp : α × α → m Bool) (hcmp : PureReturn cmp (fun p => decide (r p.1 p.2)))
     (xs ys : List α) (hxs : List.Pairwise r xs) (hys : List.Pairwise r ys) :
-    List.Pairwise r (Id.run (merge (fun p => decide (r p.1 p.2)) xs ys)) := by
-  have h : (fun p : α × α => decide (r p.1 p.2)) =
-      (fun p : α × α => (fun a b => decide (r a b)) p.1 p.2) := rfl
-  simp only [h, id_run_merge (fun a b => decide (r a b))]
-  exact hxs.merge hys
-
-/-- At `m := Id`, `mergeSort` produces a sorted list. -/
-public theorem mergeSort_sorted_id (xs : List α) :
-    List.Pairwise r (Id.run (mergeSort (fun p => decide (r p.1 p.2)) xs)) := by
-  fun_induction mergeSort (m := Id) (fun p => decide (r p.1 p.2)) xs with
-  | case1 => exact List.Pairwise.nil
-  | case2 => exact List.pairwise_singleton r _
-  | case3 a b xs lr _ _ ih_left ih_right =>
-    simp only [Id.run] at *
-    exact (merge_sorted_id r _ _ ih_left ih_right)
-
-/-- At `m := TimeT n`, `merge` preserves sortedness and produces a permutation
-    (with a pure comparator). This combined version is needed because the sortedness proof
-    requires knowing the result is a permutation of the input. -/
-private theorem merge_spec_timeT {ps : PostShape} [Monad n] [WPMonad n ps]
-    (xs ys : List α) (hxs : List.Pairwise r xs) (hys : List.Pairwise r ys) :
-    ⦃⌜True⌝⦄
-    merge (m := TimeT n) (fun p => pure (decide (r p.1 p.2))) xs ys
+    ⦃⌜True⌝⦄ merge cmp xs ys
     ⦃⇓result => ⌜List.Pairwise r result ∧ List.Perm result (xs ++ ys)⌝⦄ := by
-  fun_induction merge (m := TimeT n) (fun p => pure (decide (r p.1 p.2))) xs ys with
+  fun_induction merge (m := m) cmp xs ys with
   | case1 =>
     mvcgen
   | case2 xs =>
@@ -165,8 +143,11 @@ private theorem merge_spec_timeT {ps : PostShape} [Monad n] [WPMonad n ps]
   | case3 x xs y ys ih_t ih_f =>
     have ih_t' := ih_t hxs.of_cons hys
     have ih_f' := ih_f hxs hys.of_cons
-    mvcgen [ih_t', ih_f']
-    · apply SPred.pure_mono; intro ⟨hrest_pw, hrest_perm⟩
+    have hcmp' : ∀ p, ⦃⌜True⌝⦄ cmp p ⦃⇓b => ⌜b = decide (r p.1 p.2)⌝⦄ := hcmp
+    mvcgen [ih_t', ih_f', hcmp']
+    · mpure_intro
+      rename_i _ _ hrest
+      obtain ⟨hrest_pw, hrest_perm⟩ := hrest
       have hlt : r x y := by simp_all [decide_eq_true_eq]
       exact ⟨List.pairwise_cons.mpr ⟨fun z hz =>
         match List.mem_append.mp (hrest_perm.mem_iff.mp hz) with
@@ -176,7 +157,9 @@ private theorem merge_spec_timeT {ps : PostShape} [Monad n] [WPMonad n ps]
           | Or.inl h => h ▸ hlt
           | Or.inr hmem_ys => _root_.trans hlt (List.rel_of_pairwise_cons hys hmem_ys),
         hrest_pw⟩, List.Perm.cons _ hrest_perm⟩
-    · apply SPred.pure_mono; intro ⟨hrest_pw, hrest_perm⟩
+    · mpure_intro
+      rename_i _ _ hrest
+      obtain ⟨hrest_pw, hrest_perm⟩ := hrest
       have hlt : ¬ r x y := by simp_all [decide_eq_true_eq]
       have hyx : r y x := (Std.Total.total y x).resolve_right hlt
       exact ⟨List.pairwise_cons.mpr ⟨fun z hz =>
@@ -190,25 +173,27 @@ private theorem merge_spec_timeT {ps : PostShape} [Monad n] [WPMonad n ps]
         (List.Perm.cons _ hrest_perm).trans
           ((List.Perm.swap x y _).trans (List.Perm.cons x (List.perm_middle.symm)))⟩
 
-/-- At `m := TimeT n`, `merge` preserves sortedness (with a pure comparator). -/
-public theorem merge_sorted_timeT {ps : PostShape} [Monad n] [WPMonad n ps]
+/-- `merge` preserves sortedness, for any monadic comparator with a pure return
+    reflecting `r`. -/
+public theorem merge_sorted {ps : PostShape} [Monad m] [WPMonad m ps]
+    (cmp : α × α → m Bool) (hcmp : PureReturn cmp (fun p => decide (r p.1 p.2)))
     (xs ys : List α) :
-    ⦃⌜List.Pairwise r xs ∧ List.Pairwise r ys⌝⦄
-    merge (m := TimeT n) (fun p => pure (decide (r p.1 p.2))) xs ys
+    ⦃⌜List.Pairwise r xs ∧ List.Pairwise r ys⌝⦄ merge cmp xs ys
     ⦃⇓result => ⌜List.Pairwise r result⌝⦄ := by
   simp only [Triple]
   apply SPred.pure_elim'
   intro ⟨hxs, hys⟩
-  exact Triple.entails_wp_of_post (merge_spec_timeT r xs ys hxs hys) (by
+  exact Triple.entails_wp_of_post (merge_spec r cmp hcmp xs ys hxs hys) (by
     simp only [PostCond.entails_noThrow]; intro _; exact SPred.pure_mono And.left)
 
-/-- At `m := TimeT n`, `mergeSort` produces a sorted list (with a pure comparator). -/
-public theorem mergeSort_sorted_timeT {ps : PostShape} [Monad n] [WPMonad n ps]
+/-- `mergeSort` produces a sorted list, for any monadic comparator with a pure return
+    reflecting `r`. -/
+public theorem mergeSort_sorted {ps : PostShape} [Monad m] [WPMonad m ps]
+    (cmp : α × α → m Bool) (hcmp : PureReturn cmp (fun p => decide (r p.1 p.2)))
     (xs : List α) :
-    ⦃⌜True⌝⦄
-    mergeSort (m := TimeT n) (fun p => pure (decide (r p.1 p.2))) xs
+    ⦃⌜True⌝⦄ mergeSort cmp xs
     ⦃⇓result => ⌜List.Pairwise r result⌝⦄ := by
-  fun_induction mergeSort (m := TimeT n) (fun p => pure (decide (r p.1 p.2))) xs with
+  fun_induction mergeSort (m := m) cmp xs with
   | case1 =>
     mvcgen
     · mpure_intro; exact List.Pairwise.nil
@@ -219,13 +204,43 @@ public theorem mergeSort_sorted_timeT {ps : PostShape} [Monad n] [WPMonad n ps]
     apply Triple.bind _ _ ih_left
     intro left
     simp only [Triple]; apply SPred.pure_elim'; intro hleft
-    have hmerge : ∀ right, ⦃⌜List.Pairwise r right⌝⦄
-        merge (m := TimeT n) (fun p => pure (decide (r p.1 p.2))) left right
+    have hmerge : ∀ right, ⦃⌜List.Pairwise r right⌝⦄ merge cmp left right
         ⦃⇓result => ⌜List.Pairwise r result⌝⦄ := by
       intro right; simp only [Triple]; apply SPred.pure_elim'; intro hright
-      exact Triple.entails_wp_of_post (merge_spec_timeT r left right hleft hright) (by
-        simp only [PostCond.entails_noThrow]; intro _; exact SPred.pure_mono And.left)
+      exact Triple.entails_wp_of_post (merge_spec r cmp hcmp left right hleft hright)
+        (by simp only [PostCond.entails_noThrow]; intro _; exact SPred.pure_mono And.left)
     mvcgen [ih_right, hmerge]
+
+/-- At `m := TimeT n`, `merge` preserves sortedness (with a pure comparator). -/
+public theorem merge_sorted_timeT {ps : PostShape} [Monad n] [WPMonad n ps]
+    (xs ys : List α) :
+    ⦃⌜List.Pairwise r xs ∧ List.Pairwise r ys⌝⦄
+    merge (m := TimeT n) (fun p => pure (decide (r p.1 p.2))) xs ys
+    ⦃⇓result => ⌜List.Pairwise r result⌝⦄ :=
+  merge_sorted r _ (PureReturn.pure _) xs ys
+
+/-- At `m := TimeT n`, `mergeSort` produces a sorted list (with a pure comparator). -/
+public theorem mergeSort_sorted_timeT {ps : PostShape} [Monad n] [WPMonad n ps]
+    (xs : List α) :
+    ⦃⌜True⌝⦄
+    mergeSort (m := TimeT n) (fun p => pure (decide (r p.1 p.2))) xs
+    ⦃⇓result => ⌜List.Pairwise r result⌝⦄ :=
+  mergeSort_sorted r _ (PureReturn.pure _) xs
+
+/-- At `m := Id`, `merge` preserves sortedness. -/
+public theorem merge_sorted_id
+    (xs ys : List α) (hxs : List.Pairwise r xs) (hys : List.Pairwise r ys) :
+    List.Pairwise r (Id.run (merge (fun p => pure (decide (r p.1 p.2))) xs ys)) := by
+  have := merge_sorted r (m := Id) _ (PureReturn.pure _) xs ys
+  simp only [Triple] at this
+  exact this ⟨hxs, hys⟩
+
+/-- At `m := Id`, `mergeSort` produces a sorted list. -/
+public theorem mergeSort_sorted_id (xs : List α) :
+    List.Pairwise r (Id.run (mergeSort (fun p => pure (decide (r p.1 p.2))) xs)) := by
+  have := mergeSort_sorted r (m := Id) _ (PureReturn.pure _) xs
+  simp only [Triple] at this
+  exact this trivial
 
 end Sorted
 

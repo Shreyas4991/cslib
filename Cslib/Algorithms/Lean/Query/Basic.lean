@@ -245,6 +245,25 @@ public theorem countedM_costs [Monad n] [WPMonad n ps] (f : α → n β) (a : α
 
 end TimeT
 
+/-- A monadic function has a pure return: its output is determined by a pure function
+    of its input, regardless of monadic effects. -/
+@[expose] def PureReturn {ps : PostShape} [Monad m] [WPMonad m ps]
+    (f : α → m β) (f' : α → β) : Prop :=
+  ∀ a, ⦃⌜True⌝⦄ f a ⦃⇓b => ⌜b = f' a⌝⦄
+
+/-- `pure ∘ f'` has pure return `f'`. -/
+theorem PureReturn.pure {ps : PostShape} [Monad m] [WPMonad m ps] (f' : α → β) :
+    PureReturn (fun a => Pure.pure (f' a) : α → m β) f' := by
+  intro a; mvcgen
+
+/-- A function with a pure return is non-failing. -/
+theorem PureReturn.nonFailing {ps : PostShape} [Monad m] [WPMonad m ps]
+    {f : α → m β} {f' : α → β} (h : PureReturn f f') :
+    ∀ a, ⦃⌜True⌝⦄ f a ⦃⇓_ => ⌜True⌝⦄ := by
+  intro a
+  exact Triple.entails_wp_of_post (h a) (by
+    simp only [PostCond.entails_noThrow]; intro _; exact SPred.pure_mono (fun _ => trivial))
+
 instance : Monad TimeM := inferInstanceAs (Monad (TimeT Id))
 instance : LawfulMonad TimeM := inferInstanceAs (LawfulMonad (TimeT Id))
 instance : Std.Do.WP TimeM (.arg TimeT.State .pure) :=

@@ -101,69 +101,57 @@ public theorem insertionSort_runsIn :
 
 /-- The monadic `orderedInsert` at `m := Id` agrees with `List.orderedInsert`. -/
 public theorem id_run_orderedInsert (r : α → α → Prop) [DecidableRel r] (x : α) (xs : List α) :
-    Id.run (orderedInsert (fun p => decide (r p.1 p.2)) x xs) = List.orderedInsert r x xs := by
+    Id.run (orderedInsert (fun p => pure (decide (r p.1 p.2))) x xs) =
+      List.orderedInsert r x xs := by
   induction xs with
-  | nil => simp [orderedInsert, Id.run, Pure.pure]
+  | nil => simp [orderedInsert, Id.run_pure]
   | cons y ys ih =>
-    simp only [Id.run] at ih
-    simp only [orderedInsert, Id.run, List.orderedInsert_cons, Pure.pure, Bind.bind, ih]
+    simp only [orderedInsert, Id.run_bind, Id.run_pure, List.orderedInsert_cons]
     split <;> simp_all [decide_eq_true_eq]
 
 /-- The monadic `insertionSort` at `m := Id` agrees with `List.insertionSort`. -/
 public theorem id_run_insertionSort (r : α → α → Prop) [DecidableRel r] (xs : List α) :
-    Id.run (insertionSort (fun p => decide (r p.1 p.2)) xs) = List.insertionSort r xs := by
+    Id.run (insertionSort (fun p => pure (decide (r p.1 p.2))) xs) =
+      List.insertionSort r xs := by
   induction xs with
-  | nil => simp [insertionSort, Id.run, Pure.pure]
+  | nil => simp [insertionSort, Id.run_pure]
   | cons x xs ih =>
-    simp only [Id.run] at ih
-    simp only [insertionSort, Id.run, List.insertionSort_cons, Bind.bind, ih]
+    simp only [insertionSort, Id.run_bind, List.insertionSort_cons, ih]
     exact id_run_orderedInsert r x (List.insertionSort r xs)
 
 -- Sorted results
--- TODO: Generalize these to an arbitrary monad with a "persistent" monadic comparator,
--- i.e., one whose return value is determined by its input, regardless of monadic effects.
 
 section Sorted
 
 variable (r : α → α → Prop) [DecidableRel r] [Std.Total r] [IsTrans α r]
 
-/-- At `m := Id`, `orderedInsert` preserves sortedness. -/
-public theorem orderedInsert_sorted_id
-    (x : α) (xs : List α) (h : List.Pairwise r xs) :
-    List.Pairwise r (Id.run (orderedInsert (fun p => decide (r p.1 p.2)) x xs)) := by
-  rw [id_run_orderedInsert]
-  exact h.orderedInsert x _
-
-/-- At `m := Id`, `insertionSort` produces a sorted list. -/
-public theorem insertionSort_sorted_id (xs : List α) :
-    List.Pairwise r (Id.run (insertionSort (fun p => decide (r p.1 p.2)) xs)) := by
-  rw [id_run_insertionSort]
-  exact List.pairwise_insertionSort r xs
-
-/-- At `m := TimeT n`, `orderedInsert` preserves sortedness and produces a permutation
-    (with a pure comparator). This combined version is needed because the sortedness proof
-    in the recursive case requires knowing the result is a permutation of the input. -/
-private theorem orderedInsert_spec_timeT {ps : PostShape} [Monad n] [WPMonad n ps]
+/-- `orderedInsert` preserves sortedness and produces a permutation, for any monadic comparator
+    with a pure return reflecting `r`. This combined version is needed because the sortedness
+    proof in the recursive case requires knowing the result is a permutation of the input. -/
+private theorem orderedInsert_spec {ps : PostShape} [Monad m] [WPMonad m ps]
+    (cmp : α × α → m Bool) (hcmp : PureReturn cmp (fun p => decide (r p.1 p.2)))
     (x : α) (xs : List α) (hpw : List.Pairwise r xs) :
-    ⦃⌜True⌝⦄
-    orderedInsert (m := TimeT n) (fun p => pure (decide (r p.1 p.2))) x xs
+    ⦃⌜True⌝⦄ orderedInsert cmp x xs
     ⦃⇓result => ⌜List.Pairwise r result ∧ List.Perm result (x :: xs)⌝⦄ := by
   induction xs with
   | nil =>
     simp only [orderedInsert]
-    mvcgen
+    mvcgen [hcmp]
     · mpure_intro; exact ⟨List.pairwise_singleton r x, .refl _⟩
   | cons y ys ih =>
     simp only [orderedInsert]
     have ih' := ih hpw.of_cons
-    mvcgen [ih']
-    · apply SPred.pure_mono; intro _
+    have hcmp' : ∀ p, ⦃⌜True⌝⦄ cmp p ⦃⇓b => ⌜b = decide (r p.1 p.2)⌝⦄ := hcmp
+    mvcgen [ih', hcmp']
+    · mpure_intro
       have hlt : r x y := by simp_all [decide_eq_true_eq]
       exact ⟨List.pairwise_cons.mpr ⟨fun z hz =>
         match List.mem_cons.mp hz with
         | Or.inl h => h ▸ hlt
         | Or.inr h => _root_.trans hlt (List.rel_of_pairwise_cons hpw h), hpw⟩, .refl _⟩
-    · apply SPred.pure_mono; intro ⟨hrest_pw, hrest_perm⟩
+    · mpure_intro
+      rename_i _ _ _ hrest
+      obtain ⟨hrest_pw, hrest_perm⟩ := hrest
       have hlt : ¬ r x y := by simp_all [decide_eq_true_eq]
       exact ⟨List.pairwise_cons.mpr ⟨fun z hz =>
         match List.mem_cons.mp (hrest_perm.mem_iff.mp hz) with
@@ -171,23 +159,25 @@ private theorem orderedInsert_spec_timeT {ps : PostShape} [Monad n] [WPMonad n p
         | Or.inr h => List.rel_of_pairwise_cons hpw h, hrest_pw⟩,
         (List.Perm.cons y hrest_perm).trans (List.Perm.swap x y ys)⟩
 
-/-- At `m := TimeT n`, `orderedInsert` preserves sortedness (with a pure comparator). -/
-public theorem orderedInsert_sorted_timeT {ps : PostShape} [Monad n] [WPMonad n ps]
+/-- `orderedInsert` preserves sortedness, for any monadic comparator with a pure return
+    reflecting `r`. -/
+public theorem orderedInsert_sorted {ps : PostShape} [Monad m] [WPMonad m ps]
+    (cmp : α × α → m Bool) (hcmp : PureReturn cmp (fun p => decide (r p.1 p.2)))
     (x : α) (xs : List α) :
-    ⦃⌜List.Pairwise r xs⌝⦄
-    orderedInsert (m := TimeT n) (fun p => pure (decide (r p.1 p.2))) x xs
+    ⦃⌜List.Pairwise r xs⌝⦄ orderedInsert cmp x xs
     ⦃⇓result => ⌜List.Pairwise r result⌝⦄ := by
   simp only [Triple]
   apply SPred.pure_elim'
   intro hpw
-  exact Triple.entails_wp_of_post (orderedInsert_spec_timeT r x xs hpw) (by
+  exact Triple.entails_wp_of_post (orderedInsert_spec r cmp hcmp x xs hpw) (by
     simp only [PostCond.entails_noThrow]; intro _; exact SPred.pure_mono And.left)
 
-/-- At `m := TimeT n`, `insertionSort` produces a sorted list (with a pure comparator). -/
-public theorem insertionSort_sorted_timeT {ps : PostShape} [Monad n] [WPMonad n ps]
+/-- `insertionSort` produces a sorted list, for any monadic comparator with a pure return
+    reflecting `r`. -/
+public theorem insertionSort_sorted {ps : PostShape} [Monad m] [WPMonad m ps]
+    (cmp : α × α → m Bool) (hcmp : PureReturn cmp (fun p => decide (r p.1 p.2)))
     (xs : List α) :
-    ⦃⌜True⌝⦄
-    insertionSort (m := TimeT n) (fun p => pure (decide (r p.1 p.2))) xs
+    ⦃⌜True⌝⦄ insertionSort cmp xs
     ⦃⇓result => ⌜List.Pairwise r result⌝⦄ := by
   induction xs with
   | nil =>
@@ -196,8 +186,39 @@ public theorem insertionSort_sorted_timeT {ps : PostShape} [Monad n] [WPMonad n 
     · mpure_intro; exact List.Pairwise.nil
   | cons x xs ih =>
     simp only [insertionSort]
-    have hord := orderedInsert_sorted_timeT (n := n) (ps := ps) r x
+    have hord := orderedInsert_sorted r cmp hcmp x
     mvcgen [ih, hord]
+
+/-- At `m := Id`, `orderedInsert` preserves sortedness. -/
+public theorem orderedInsert_sorted_id
+    (x : α) (xs : List α) (h : List.Pairwise r xs) :
+    List.Pairwise r (Id.run (orderedInsert (fun p => pure (decide (r p.1 p.2))) x xs)) := by
+  have := orderedInsert_sorted r (m := Id) _ (PureReturn.pure _) x xs
+  simp only [Triple] at this
+  exact this h
+
+/-- At `m := Id`, `insertionSort` produces a sorted list. -/
+public theorem insertionSort_sorted_id (xs : List α) :
+    List.Pairwise r (Id.run (insertionSort (fun p => pure (decide (r p.1 p.2))) xs)) := by
+  have := insertionSort_sorted r (m := Id) _ (PureReturn.pure _) xs
+  simp only [Triple] at this
+  exact this trivial
+
+/-- At `m := TimeT n`, `orderedInsert` preserves sortedness (with a pure comparator). -/
+public theorem orderedInsert_sorted_timeT {ps : PostShape} [Monad n] [WPMonad n ps]
+    (x : α) (xs : List α) :
+    ⦃⌜List.Pairwise r xs⌝⦄
+    orderedInsert (m := TimeT n) (fun p => pure (decide (r p.1 p.2))) x xs
+    ⦃⇓result => ⌜List.Pairwise r result⌝⦄ :=
+  orderedInsert_sorted r _ (PureReturn.pure _) x xs
+
+/-- At `m := TimeT n`, `insertionSort` produces a sorted list (with a pure comparator). -/
+public theorem insertionSort_sorted_timeT {ps : PostShape} [Monad n] [WPMonad n ps]
+    (xs : List α) :
+    ⦃⌜True⌝⦄
+    insertionSort (m := TimeT n) (fun p => pure (decide (r p.1 p.2))) xs
+    ⦃⇓result => ⌜List.Pairwise r result⌝⦄ :=
+  insertionSort_sorted r _ (PureReturn.pure _) xs
 
 end Sorted
 
