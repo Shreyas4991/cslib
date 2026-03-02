@@ -10,7 +10,7 @@ public import Cslib.Algorithms.Lean.Query.InsertionSort.Defs
 import Std.Tactic.Do
 public import Mathlib.Data.List.Sort
 
-open Std.Do Cslib.Query TickT
+open Std.Do Cslib.Query TimeT
 
 set_option mvcgen.warning false
 
@@ -20,23 +20,23 @@ namespace Cslib.Query
 
 /-- `orderedInsert` produces a permutation of `x :: xs`, for any non-failing monadic comparator. -/
 public theorem orderedInsert_perm {ps : PostShape} [Monad m] [WPMonad m ps]
-    (cmp : α × α → m Bool) (hcmp : ∀ p, ⦃⌜True⌝⦄ cmp p ⦃⇓ _ => ⌜True⌝⦄)
+    (cmp : α × α → m Bool) (hcmp : ∀ p, ⦃⌜True⌝⦄ cmp p ⦃⇓_ => ⌜True⌝⦄)
     (x : α) (xs : List α) :
-    ⦃⌜True⌝⦄ orderedInsert cmp x xs ⦃⇓ result => ⌜List.Perm result (x :: xs)⌝⦄ := by
+    ⦃⌜True⌝⦄ orderedInsert cmp x xs ⦃⇓result => ⌜List.Perm result (x :: xs)⌝⦄ := by
   induction xs with
   | nil =>
     simp only [orderedInsert]
     mvcgen
   | cons y ys ih =>
     simp only [orderedInsert]
-    mvcgen [ih, hcmp] with
-      mleave
+    mvcgen [ih, hcmp]
     · mpure_intro; exact (List.Perm.cons _ ‹_›).trans (List.Perm.swap _ _ _)
 
 /-- Variant of `orderedInsert_perm` with a permutation precondition:
-    if `sorted` is a permutation of `xs`, then `orderedInsert` produces a permutation of `x :: xs`. -/
+    if `sorted` is a permutation of `xs`,
+    then `orderedInsert` produces a permutation of `x :: xs`. -/
 private theorem orderedInsert_perm' {ps : PostShape} [Monad m] [WPMonad m ps]
-    (cmp : α × α → m Bool) (hcmp : ∀ p, ⦃⌜True⌝⦄ cmp p ⦃⇓ _ => ⌜True⌝⦄)
+    (cmp : α × α → m Bool) (hcmp : ∀ p, ⦃⌜True⌝⦄ cmp p ⦃⇓_ => ⌜True⌝⦄)
     (x : α) (xs : List α) (sorted : List α) :
     ⦃⌜List.Perm sorted xs⌝⦄ orderedInsert cmp x sorted
       ⦃⇓ result => ⌜List.Perm result (x :: xs)⌝⦄ := by
@@ -56,9 +56,9 @@ private theorem orderedInsert_perm' {ps : PostShape} [Monad m] [WPMonad m ps]
 
 /-- `insertionSort` produces a permutation of its input, for any non-failing monadic comparator. -/
 public theorem insertionSort_perm {ps : PostShape} [Monad m] [WPMonad m ps]
-    (cmp : α × α → m Bool) (hcmp : ∀ p, ⦃⌜True⌝⦄ cmp p ⦃⇓ _ => ⌜True⌝⦄)
+    (cmp : α × α → m Bool) (hcmp : ∀ p, ⦃⌜True⌝⦄ cmp p ⦃⇓_ => ⌜True⌝⦄)
     (xs : List α) :
-    ⦃⌜True⌝⦄ insertionSort cmp xs ⦃⇓ result => ⌜List.Perm result xs⌝⦄ := by
+    ⦃⌜True⌝⦄ insertionSort cmp xs ⦃⇓result => ⌜List.Perm result xs⌝⦄ := by
   induction xs with
   | nil =>
     simp only [insertionSort]
@@ -71,8 +71,8 @@ public theorem insertionSort_perm {ps : PostShape} [Monad m] [WPMonad m ps]
 /-- `orderedInsert` uses at most `xs.length` queries. -/
 public theorem orderedInsert_runsIn (x : α) :
     RunsIn (fun cmp xs => orderedInsert cmp x xs) List.length := by
-  change ∀ (query : (α × α) → TickM Bool), (∀ a, TickT.Costs (query a) 1) →
-    ∀ xs, TickT.Costs (orderedInsert query x xs) xs.length
+  change ∀ (query : (α × α) → TimeM Bool), (∀ a, TimeT.Costs (query a) 1) →
+    ∀ xs, TimeT.Costs (orderedInsert query x xs) xs.length
   intro query hquery xs
   induction xs with
   | nil =>
@@ -88,8 +88,8 @@ public theorem orderedInsert_runsIn (x : α) :
 /-- `insertionSort` uses at most `xs.length ^ 2` queries. -/
 public theorem insertionSort_runsIn :
     RunsIn (insertionSort (α := α)) (fun xs => xs.length * xs.length) := by
-  change ∀ (query : (α × α) → TickM Bool), (∀ a, TickT.Costs (query a) 1) →
-    ∀ xs, TickT.Costs (insertionSort query xs) (xs.length * xs.length)
+  change ∀ (query : (α × α) → TimeM Bool), (∀ a, TimeT.Costs (query a) 1) →
+    ∀ xs, TimeT.Costs (insertionSort query xs) (xs.length * xs.length)
   intro query hquery xs
   induction xs with
   | nil =>

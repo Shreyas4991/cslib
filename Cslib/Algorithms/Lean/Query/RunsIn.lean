@@ -19,17 +19,17 @@ An algorithm like
 def insertionSort [Monad m] (cmp : α × α → m Bool) : List α → m (List α) := ...
 ```
 is written generically over the monad `m`. To measure its query complexity, we specialize
-`m` to `TickM` (or `TickT n` for algorithms with additional effects) and provide a
+`m` to `TimeM` (or `TimeT n` for algorithms with additional effects) and provide a
 `cmp` implementation that calls `tick` once per invocation.
 
 Because `insertionSort` is parametric in `m`, it **cannot observe the tick instrumentation**.
 It must call `cmp` the same number of times regardless of which monad it runs in.
-Therefore any upper bound proved via `TickM` is a true bound on query count in all monads.
+Therefore any upper bound proved via `TimeM` is a true bound on query count in all monads.
 
 `RunsInT` handles algorithms that use a base monad `n` for their own effects
 (e.g., `StateM` for accumulation). The function must be generic over monads extending `n`
-via `MonadLiftT`, and we specialize to `TickT n` which layers tick-counting on top of `n`.
-The same parametricity argument applies: the algorithm cannot distinguish `TickT n` from
+via `MonadLiftT`, and we specialize to `TimeT n` which layers tick-counting on top of `n`.
+The same parametricity argument applies: the algorithm cannot distinguish `TimeT n` from
 any other monad that lifts `n`.
 
 ## Computability caveat
@@ -49,7 +49,7 @@ public section
 namespace Cslib.Query
 
 /-- `RunsInT n f bound` asserts that when the monad-generic function `f`
-    is specialized to `TickT n`, with any query that calls `tick` at most once per invocation,
+    is specialized to `TimeT n`, with any query that calls `tick` at most once per invocation,
     the total number of ticks is bounded by `bound x`.
 
     The function `f` is generic over monads that extend `n` via `MonadLift`,
@@ -57,17 +57,17 @@ namespace Cslib.Query
 @[expose] def RunsInT {n : Type → Type} {ps : PostShape} [Monad n] [WP n ps]
     (f : ∀ {m : Type → Type} [Monad m] [MonadLiftT n m], (α → m β) → γ → m δ)
     (bound : γ → Nat) : Prop :=
-  ∀ (query : α → TickT n β), (∀ a, TickT.Costs (query a) 1) →
-    ∀ x, TickT.Costs (f query x) (bound x)
+  ∀ (query : α → TimeT n β), (∀ a, TimeT.Costs (query a) 1) →
+    ∀ x, TimeT.Costs (f query x) (bound x)
 
-/-- `RunsIn f bound` asserts that when the monad-generic function `f` is specialized to `TickM`,
+/-- `RunsIn f bound` asserts that when the monad-generic function `f` is specialized to `TimeM`,
     with any query that calls `tick` at most once per invocation,
     the total number of ticks is bounded by `bound x`. -/
 @[expose] def RunsIn
     (f : ∀ {m : Type → Type} [Monad m], (α → m β) → γ → m δ)
     (bound : γ → Nat) : Prop :=
-  ∀ (query : α → TickM β), (∀ a, TickT.Costs (query a) 1) →
-    ∀ x, TickT.Costs (f query x) (bound x)
+  ∀ (query : α → TimeM β), (∀ a, TimeT.Costs (query a) 1) →
+    ∀ x, TimeT.Costs (f query x) (bound x)
 
 end Cslib.Query
 

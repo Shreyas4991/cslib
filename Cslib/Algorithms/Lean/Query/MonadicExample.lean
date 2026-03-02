@@ -43,13 +43,13 @@ public theorem mapSum_runsInT :
     RunsInT (n := StateM Int) mapSum (fun xs => xs.length) := by
   intro query hquery xs
   induction xs with
-  | nil => exact TickT.Costs.pure ()
+  | nil => exact TimeT.Costs.pure ()
   | cons x xs ih =>
     simp only [List.length]; rw [Nat.add_comm]
-    have ih : TickT.Costs (mapSum query xs) xs.length := ih
-    exact TickT.Costs.bind (hquery x) (fun y => by
-      have := TickT.Costs.bind
-        (TickT.Costs.monadLift (modify (· + y) : StateM Int Unit) (fun P => by mvcgen))
+    have ih : TimeT.Costs (mapSum query xs) xs.length := ih
+    exact TimeT.Costs.bind (hquery x) (fun y => by
+      have := TimeT.Costs.bind
+        (TimeT.Costs.monadLift (modify (· + y) : StateM Int Unit) (fun P => by mvcgen))
         (fun _ => ih)
       rwa [Nat.zero_add] at this)
 
@@ -90,13 +90,13 @@ public theorem mapSum_spec (f : Int → Int) (xs : List Int) :
     Special case of `mapSum_spec_general`. -/
 public theorem mapSum_spec_tick (f : Int → Int) (xs : List Int) :
     ∀ c, ⦃fun _ => fun n => ⌜n = c⌝⦄
-      mapSum (m := TickT (StateM Int)) (TickT.counted f) xs
+      mapSum (m := TimeT (StateM Int)) (TimeT.counted f) xs
     ⦃⇓ _ => fun _ => fun n => ⌜n = c + (xs.map f).sum⌝⦄ :=
-  mapSum_spec_general (m := TickT (StateM Int)) (TickT.counted f) f
+  mapSum_spec_general (m := TimeT (StateM Int)) (TimeT.counted f) f
     (fun c => (fun _ => fun n => ⌜n = c⌝ : Assertion _))
-    (by intro x c; simp only [TickT.counted]; mvcgen)
+    (by intro x c; simp only [TimeT.counted]; mvcgen)
     (by intro v c; simp only [Triple]; mvcgen
-        simp only [TickT.wp_monadLift, Std.Do.WP.modifyGet_StateT]
+        simp only [TimeT.wp_monadLift, Std.Do.WP.modifyGet_StateT]
         intro _ _ h; subst h; rfl)
     xs
 
