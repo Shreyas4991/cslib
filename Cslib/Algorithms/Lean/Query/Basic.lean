@@ -37,7 +37,7 @@ The monad abstraction acts as an information barrier: the algorithm cannot disti
 the instrumented monad from any other, so it cannot game the counter.
 
 See `Cslib.Algorithms.Lean.Query.RunsIn` for the `RunsIn` and `RunsInT` predicates that
-package this specialization step.
+package this specialization step, and for a discussion of the computability caveat.
 -/
 
 open Std.Do

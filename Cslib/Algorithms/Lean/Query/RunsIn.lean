@@ -31,6 +31,15 @@ Therefore any upper bound proved via `TickM` is a true bound on query count in a
 via `MonadLiftT`, and we specialize to `TickT n` which layers tick-counting on top of `n`.
 The same parametricity argument applies: the algorithm cannot distinguish `TickT n` from
 any other monad that lifts `n`.
+
+## Computability caveat
+
+The parametricity argument is only valid for **computable** algorithms. A `noncomputable`
+definition could use `Classical.choice` to inspect `m` or the query function and subvert
+the instrumentation. Since Lean's type theory does not enforce parametricity, the soundness
+guarantee is informal: `RunsIn` and `RunsInT` theorems should only be proved about computable
+algorithms. This framework is designed for proving upper bounds on query complexity, not lower
+bounds.
 -/
 
 open Std.Do Cslib.Query
