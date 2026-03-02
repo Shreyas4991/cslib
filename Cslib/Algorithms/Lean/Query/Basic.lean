@@ -160,11 +160,17 @@ public theorem Costs.bind [Monad n] [WPMonad n ps]
   have := hf a (c + k₁)
   rwa [Nat.add_assoc] at this
 
-private theorem ExceptConds.false_and_self (ps : PostShape) :
-    (ExceptConds.false (ps := ps) ∧ₑ ExceptConds.false).entails ExceptConds.false := by
+private theorem ExceptConds.and_elim_left (x y : ExceptConds ps) :
+    (x ∧ₑ y).entails x := by
   induction ps with
-  | pure => exact ⟨⟩ | arg _ _ ih => exact ih
-  | except _ _ ih => exact ⟨fun _ => SPred.and_elim_l, ih⟩
+  | pure => exact ⟨⟩ | arg _ _ ih => exact ih _ _
+  | except _ _ ih => exact ⟨fun _ => SPred.and_elim_l, ih _ _⟩
+
+private theorem ExceptConds.and_elim_right (x y : ExceptConds ps) :
+    (x ∧ₑ y).entails y := by
+  induction ps with
+  | pure => exact ⟨⟩ | arg _ _ ih => exact ih _ _
+  | except _ _ ih => exact ⟨fun _ => SPred.and_elim_r, ih _ _⟩
 
 /-- Sequential composition with specification: when the continuation's cost
     depends on a predicate established by the first computation. -/
@@ -179,7 +185,7 @@ public theorem Costs.bind_spec [Monad n] [WPMonad n ps]
   · apply SPred.entails.trans
       (SPred.entails.trans (SPred.and_intro .rfl (SPred.pure_intro trivial)) hcombined)
     · apply (wp x).mono
-      exact ⟨fun _ => .rfl, ExceptConds.false_and_self ps⟩
+      exact ⟨fun _ => .rfl, ExceptConds.and_elim_left _ _⟩
   · intro a
     simp only [Triple]
     apply SPred.pure_elim_r
