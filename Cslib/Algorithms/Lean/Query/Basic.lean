@@ -59,26 +59,47 @@ structure TickT.State where
 
 namespace TickT
 
-instance [Monad m] : Monad (TickT m) := inferInstanceAs (Monad (StateT State m))
+/-- Wrap a `StateT TickT.State m` computation as a `TickT m` computation. -/
+@[expose, inline] def mk (x : StateT State m α) : TickT m α := x
+
+/-- Unwrap a `TickT m` computation to `StateT TickT.State m`. -/
+@[expose, inline] def unfold (x : TickT m α) : StateT State m α := x
+
+@[simp] theorem unfold_mk (x : StateT State m α) : (mk x).unfold = x := rfl
+@[simp] theorem mk_unfold (x : TickT m α) : mk x.unfold = x := rfl
+
+@[ext] theorem ext {x y : TickT m α} (h : x.unfold = y.unfold) : x = y := h
+
+instance [Monad m] : Monad (TickT m) where
+  pure a := mk (pure a)
+  bind x f := mk (x.unfold >>= fun a => (f a).unfold)
+
 instance [Monad m] [LawfulMonad m] : LawfulMonad (TickT m) :=
   inferInstanceAs (LawfulMonad (StateT State m))
 instance [WP m ps] : Std.Do.WP (TickT m) (.arg State ps) :=
   inferInstanceAs (Std.Do.WP (StateT State m) _)
+
 instance [Monad m] [WPMonad m ps] : WPMonad (TickT m) (.arg State ps) :=
   inferInstanceAs (WPMonad (StateT State m) _)
-instance [Monad m] : MonadLift m (TickT m) := inferInstanceAs (MonadLift m (StateT State m))
+
+instance [Monad m] : MonadLift m (TickT m) where
+  monadLift x := mk (StateT.lift x)
 
 /-- Run a `TickT` computation, starting with tick count 0,
     returning the result and the final tick count. -/
 def run [Monad m] (x : TickT m α) : m (α × Nat) := do
-  let (a, s) ← StateT.run x ⟨0⟩
+  let (a, s) ← x.unfold.run ⟨0⟩
   pure (a, s.count)
 
 /-- Run a `TickT` computation, starting with tick count 0, discarding the tick count. -/
-def run' [Monad m] (x : TickT m α) : m α := Prod.fst <$> StateT.run x ⟨0⟩
+def run' [Monad m] (x : TickT m α) : m α := Prod.fst <$> x.unfold.run ⟨0⟩
 
 /-- Increment the tick counter by 1. -/
-@[expose] def tick [Monad m] : TickT m Unit := fun s => pure ((), ⟨s.count + 1⟩)
+@[expose] def tick [Monad m] : TickT m Unit :=
+  mk (modify fun s => ⟨s.count + 1⟩)
+
+@[simp] theorem tick_unfold [Monad m] :
+    (tick : TickT m Unit).unfold = modify fun s => ⟨s.count + 1⟩ := rfl
 
 /-- Instrument a pure function as a tick-counted query.
     `counted f a` increments the tick counter by 1 and returns `f a`. -/
