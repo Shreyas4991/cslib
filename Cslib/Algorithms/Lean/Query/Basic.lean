@@ -160,12 +160,14 @@ public theorem Costs.bind [Monad n] [WPMonad n ps]
   have := hf a (c + k₁)
   rwa [Nat.add_assoc] at this
 
+-- Upstreamed in https://github.com/leanprover/lean4/pull/12760
 private theorem ExceptConds.and_elim_left (x y : ExceptConds ps) :
     (x ∧ₑ y).entails x := by
   induction ps with
   | pure => exact ⟨⟩ | arg _ _ ih => exact ih _ _
   | except _ _ ih => exact ⟨fun _ => SPred.and_elim_l, ih _ _⟩
 
+-- Upstreamed in https://github.com/leanprover/lean4/pull/12760
 private theorem ExceptConds.and_elim_right (x y : ExceptConds ps) :
     (x ∧ₑ y).entails y := by
   induction ps with
