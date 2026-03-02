@@ -107,10 +107,10 @@ While this accepts any decidable relation `le`, most sorting algorithms are only
 presence of `[Std.Total le] [IsTrans _ le]`.
 -/
 @[simps, grind]
-def sortModel {α : Type} (le : α → α → Prop) [DecidableRel le] :
+def sortModel {α : Type} (le : α → α → Bool) :
     Model (SortOpsInsertHead α) SortOpsCost where
   evalQuery
-    | .cmpLE x y => decide (le x y)
+    | .cmpLE x y => le x y
     | .insertHead x l => x :: l
   cost
     | .cmpLE _ _ => ⟨1,0⟩
@@ -138,9 +138,9 @@ presence of `[Std.Total le] [IsTrans _ le]`.
 -/
 @[simps]
 def sortModelNat {α : Type*}
-    (le : α → α → Prop) [DecidableRel le] : Model (SortOps α) ℕ where
+    (le : α → α → Bool) : Model (SortOps α) ℕ where
   evalQuery
-    | .cmpLE x y => decide (le x y)
+    | .cmpLE x y => le x y
   cost _ := 1
 
 end NatModel

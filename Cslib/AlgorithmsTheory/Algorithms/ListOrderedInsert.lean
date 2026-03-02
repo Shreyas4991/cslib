@@ -58,8 +58,8 @@ def insertOrd (x : α) (l : List α) : Prog (SortOpsInsertHead α) (List α) := 
         insertHead a res
 
 @[simp]
-lemma insertOrd_eval (x : α) (l : List α) (le : α → α → Prop) [DecidableRel le] :
-    (insertOrd x l).eval (sortModel le) = l.orderedInsert le x := by
+lemma insertOrd_eval (x : α) (l : List α) (le : α → α → Bool) :
+    (insertOrd x l).eval (sortModel le) = l.orderedInsert (fun x y => le x y = true) x := by
   induction l with
   | nil =>
     simp [insertOrd, sortModel]
@@ -75,7 +75,7 @@ lemma _root_.List.length_orderedInsert (x : α) (l : List α) [DecidableRel r] :
   induction l <;> grind
 
 theorem insertOrd_complexity_upper_bound
-    (l : List α) (x : α) (le : α → α → Prop) [DecidableRel le] :
+    (l : List α) (x : α) (le : α → α → Bool) :
     (insertOrd x l).time (sortModel le) ≤ ⟨l.length, l.length + 1⟩ := by
   induction l with
   | nil =>
@@ -89,8 +89,11 @@ theorem insertOrd_complexity_upper_bound
       grind
 
 lemma insertOrd_sorted
-    (l : List α) (x : α) (le : α → α → Prop) [DecidableRel le] [Std.Total le] [IsTrans α le] :
-    l.Pairwise le → ((insertOrd x l).eval (sortModel le)).Pairwise le := by
+    (l : List α) (x : α) (le : α → α → Bool)
+    [Std.Total (fun x y => le x y)]
+    [IsTrans _ (fun x y => le x y)] :
+    l.Pairwise (fun x y => le x y)
+      → ((insertOrd x l).eval (sortModel le)).Pairwise (fun x y => le x y = true) := by
   rw [insertOrd_eval]
   exact List.Pairwise.orderedInsert _ _
 

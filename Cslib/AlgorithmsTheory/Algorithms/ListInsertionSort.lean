@@ -46,36 +46,39 @@ def insertionSort (l : List α) : Prog (SortOpsInsertHead α) (List α) :=
       insertOrd x rest
 
 @[simp]
-theorem insertionSort_eval (l : List α) (le : α → α → Prop) [DecidableRel le] :
-    (insertionSort l).eval (sortModel le) = l.insertionSort le := by
+theorem insertionSort_eval (l : List α) (le : α → α → Bool) :
+    (insertionSort l).eval (sortModel le) = l.insertionSort (fun x y => le x y = true) := by
   induction l with simp_all [insertionSort]
 
-theorem insertionSort_permutation (l : List α) (le : α → α → Prop) [DecidableRel le] :
+theorem insertionSort_permutation (l : List α) (le : α → α → Bool) :
     ((insertionSort l).eval (sortModel le)).Perm l := by
     simp [insertionSort_eval, List.perm_insertionSort]
 
 theorem insertionSort_sorted
-    (l : List α) (le : α → α → Prop) [DecidableRel le] [Std.Total le] [IsTrans α le] :
-    ((insertionSort l).eval (sortModel le)).Pairwise le := by
+    (l : List α) (le : α → α → Bool)
+    [Std.Total (fun x y => le x y = true)] [IsTrans α (fun x y => le x y = true)] :
+    ((insertionSort l).eval (sortModel le)).Pairwise (fun x y => le x y = true) := by
   simpa using List.pairwise_insertionSort _ _
 
-lemma insertionSort_length (l : List α) (le : α → α → Prop) [DecidableRel le] :
+lemma insertionSort_length (l : List α) (le : α → α → Bool) :
     ((insertionSort l).eval (sortModel le)).length = l.length := by
   simp
 
-lemma insertionSort_time_compares (head : α) (tail : List α) (le : α → α → Prop) [DecidableRel le] :
+lemma insertionSort_time_compares (head : α) (tail : List α) (le : α → α → Bool) :
     ((insertionSort (head :: tail)).time (sortModel le)).compares =
       ((insertionSort tail).time (sortModel le)).compares +
-        ((insertOrd head (tail.insertionSort le)).time (sortModel le)).compares := by
+        ((insertOrd head (tail.insertionSort (fun x y => le x y = true))).time
+          (sortModel le)).compares := by
   simp [insertionSort]
 
-lemma insertionSort_time_inserts (head : α) (tail : List α) (le : α → α → Prop) [DecidableRel le] :
+lemma insertionSort_time_inserts (head : α) (tail : List α) (le : α → α → Bool) :
     ((insertionSort (head :: tail)).time (sortModel le)).inserts =
       ((insertionSort tail).time (sortModel le)).inserts +
-        ((insertOrd head (tail.insertionSort le)).time (sortModel le)).inserts := by
+        ((insertOrd head (tail.insertionSort (fun x y => le x y = true))).time
+          (sortModel le)).inserts := by
   simp [insertionSort]
 
-theorem insertionSort_complexity (l : List α) (le : α → α → Prop) [DecidableRel le] :
+theorem insertionSort_complexity (l : List α) (le : α → α → Bool) :
     ((insertionSort l).time (sortModel le))
       ≤ ⟨l.length * (l.length + 1), (l.length + 1) * (l.length + 2)⟩ := by
   induction l with
