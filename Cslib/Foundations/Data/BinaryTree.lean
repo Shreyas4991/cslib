@@ -10,15 +10,15 @@ module
 public import Mathlib.Combinatorics.SimpleGraph.Basic
 public import Mathlib.Combinatorics.SimpleGraph.Metric
 
-@[expose] public section
-
 /-!
 # Binary Tree
 
 In this file we introduce the `BinaryTree` data structure and its basic operations.
 -/
 
-variable {α : Type}
+@[expose] public section
+
+namespace Cslib
 
 inductive BinaryTree (α : Type) where
   | empty
@@ -256,3 +256,5 @@ def contains [LinearOrder α] (t : BST α) (q : α) : Prop :=
 end BST
 
 end BSTStructure
+
+end Cslib
