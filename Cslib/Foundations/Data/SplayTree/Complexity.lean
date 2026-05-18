@@ -5,9 +5,11 @@ Authors: Anton Kovsharov, Antoine du Fresne von Hohenesche,
   Sorrachai Yingchareonthawornchai
 -/
 
-import Cslib.Foundations.Data.SplayTree.Basic
-import Mathlib.Data.Real.Basic
-import Mathlib.Analysis.SpecialFunctions.Log.Base
+module
+
+public import Cslib.Foundations.Data.SplayTree.Basic
+public import Mathlib.Data.Real.Basic
+public import Mathlib.Analysis.SpecialFunctions.Log.Base
 
 /-!
 # Amortized Complexity of Splay Trees
@@ -21,7 +23,9 @@ the classical O(m log n + n log n) total cost bound for a sequence of
 splay operations.
 -/
 
-variable {α : Type}
+@[expose] public section
+
+namespace Cslib
 
 namespace SplayTree
 
@@ -727,3 +731,5 @@ theorem nlogn_cost [LinearOrder α] (n m : ℕ) (X : Fin m → α)
 end SequenceCost
 
 end SplayTree
+
+end Cslib

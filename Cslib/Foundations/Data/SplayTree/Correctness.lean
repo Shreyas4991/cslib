@@ -5,7 +5,9 @@ Authors: Anton Kovsharov, Antoine du Fresne von Hohenesche,
   Sorrachai Yingchareonthawornchai
 -/
 
-import Cslib.Foundations.Data.SplayTree.Basic
+module
+
+public import Cslib.Foundations.Data.SplayTree.Basic
 
 /-!
 # Splay Tree Correctness
@@ -15,7 +17,9 @@ It establishes that splaying preserves the binary search tree (BST) invariant
 and guarantees that querying an existing key successfully rotates it to the root.
 -/
 
-variable {α : Type}
+@[expose] public section
+
+namespace Cslib
 
 namespace SplayTree
 
@@ -256,3 +260,5 @@ theorem splay_root_of_contains [LinearOrder α] (t : BinaryTree α) (q : α)
 end RootOfContainedKey
 
 end SplayTree
+
+end Cslib

@@ -5,8 +5,10 @@ Authors: Anton Kovsharov, Antoine du Fresne von Hohenesche,
   Sorrachai Yingchareonthawornchai
 -/
 
-import Cslib.Foundations.Data.BinaryTree
-import Mathlib.Data.List.Sort
+module
+
+public import Cslib.Foundations.Data.BinaryTree
+public import Mathlib.Data.List.Sort
 
 /-!
 # Splay Tree Basic Definitions
@@ -16,7 +18,9 @@ rotation primitives, path frames, and the `splay` and `splayUp` functions.
 It also provides fundamental structural lemmas regarding tree size and descent paths.
 -/
 
-variable {α : Type}
+@[expose] public section
+
+namespace Cslib
 
 namespace SplayTree
 
@@ -374,3 +378,5 @@ lemma descend_go_length_le [LinearOrder α] (q : α) (t : BinaryTree α) (acc : 
 end DescendLemmas
 
 end SplayTree
+
+end Cslib

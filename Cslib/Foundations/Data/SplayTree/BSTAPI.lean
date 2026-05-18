@@ -5,8 +5,10 @@ Authors: Anton Kovsharov, Antoine du Fresne von Hohenesche,
   Sorrachai Yingchareonthawornchai
 -/
 
-import Cslib.Foundations.Data.SplayTree.Complexity
-import Cslib.Foundations.Data.SplayTree.Correctness
+module
+
+public import Cslib.Foundations.Data.SplayTree.Complexity
+public import Cslib.Foundations.Data.SplayTree.Correctness
 
 /-!
 # Splay Tree API for BST
@@ -17,12 +19,16 @@ proofs, allowing users to safely and cleanly manipulate BSTs without manually
 re-proving the `IsBST` invariant after every rotation.
 -/
 
-variable {α : Type} [LinearOrder α]
+@[expose] public section
+
+namespace Cslib
 
 namespace SplayTree.BSTAPI
 
 open SplayTree
 open BinaryTree
+
+variable {α : Type} [LinearOrder α]
 
 /-! ### Core Operation -/
 
@@ -85,3 +91,5 @@ theorem nlogn_cost (n m : ℕ) (X : Fin m → α)
   SplayTree.nlogn_cost n m X init.tree h_size
 
 end SplayTree.BSTAPI
+
+end Cslib
